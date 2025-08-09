@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-08-09",
+  "total_checks": 12,
+  "success_count": 38,
+  "warnings": [
+    "Permissions avancées recommandées manquantes: android.permission.BIND_VOICE_INTERACTION, android.permission.CAPTURE_AUDIO_HOTWORD, android.permission.FOREGROUND_SERVICE_MICROPHONE, android.permission.USE_BIOMETRIC",
+    "Flutter CLI non trouvé - analyse statique ignorée"
+  ],
+  "errors": [],
+  "success_rate": 316.66666666666663,
+  "status": "🟢 EXCELLENT"
+}

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- Couleurs du widget -->
+    <color name="widget_active_background">#E3F2FD</color>
+    <color name="widget_inactive_background">#F5F5F5</color>
+    <color name="widget_border">#E0E0E0</color>
+    
+    <!-- Couleurs des textes -->
+    <color name="widget_text_primary">#212121</color>
+    <color name="widget_text_secondary">#757575</color>
+    
+    <!-- Couleurs des boutons -->
+    <color name="widget_button_normal">#2196F3</color>
+    <color name="widget_button_pressed">#1976D2</color>
+    <color name="widget_button_text">#FFFFFF</color>
+    
+    <!-- Couleurs des icônes -->
+    <color name="widget_icon_active">#4CAF50</color>
+    <color name="widget_icon_inactive">#9E9E9E</color>
+    <color name="widget_icon_normal">#757575</color>
+    <color name="widget_icon_pressed">#BBDEFB</color>
+    
+</resources>

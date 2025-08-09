@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HordVoice</string>
+    <string name="quick_settings_hordvoice_label">HordVoice</string>
+    <string name="quick_settings_hordvoice_description">Assistant vocal intelligent</string>
+    <string name="widget_description">Assistant vocal HordVoice - Contrôle rapide depuis l\'écran d\'accueil</string>
+    <string name="widget_toggle_listening">Activer/Désactiver l\'écoute</string>
+    <string name="widget_weather">Météo</string>
+    <string name="widget_news">Actualités</string>
+    <string name="widget_navigation">Navigation</string>
+</resources>

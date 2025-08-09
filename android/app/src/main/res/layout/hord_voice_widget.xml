@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:background="@drawable/widget_background"
+    android:gravity="center">
+
+    <!-- Header avec nom app et statut -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:id="@+id/widget_status_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_mic_off"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Status Icon" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_app_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HordVoice"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/widget_text_primary"
+                android:gravity="start" />
+
+            <TextView
+                android:id="@+id/widget_status_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Touchez pour activer"
+                android:textSize="12sp"
+                android:textColor="@color/widget_text_secondary"
+                android:gravity="start" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Bouton principal toggle -->
+    <Button
+        android:id="@+id/widget_toggle_button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Activer Assistant"
+        android:textSize="14sp"
+        android:textColor="@color/widget_button_text"
+        android:background="@drawable/widget_button_background"
+        android:layout_marginBottom="8dp"
+        android:drawableStart="@drawable/ic_mic_off"
+        android:drawablePadding="8dp"
+        android:gravity="center" />
+
+    <!-- Boutons commandes rapides -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="4dp">
+
+        <ImageButton
+            android:id="@+id/widget_weather_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_weather"
+            android:background="@drawable/widget_icon_button_background"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="Météo"
+            android:scaleType="centerInside" />
+
+        <ImageButton
+            android:id="@+id/widget_news_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_news"
+            android:background="@drawable/widget_icon_button_background"
+            android:layout_marginHorizontal="2dp"
+            android:contentDescription="Actualités"
+            android:scaleType="centerInside" />
+
+        <ImageButton
+            android:id="@+id/widget_navigation_button"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:src="@drawable/ic_navigation"
+            android:background="@drawable/widget_icon_button_background"
+            android:layout_marginStart="4dp"
+            android:contentDescription="Navigation"
+            android:scaleType="centerInside" />
+
+    </LinearLayout>
+
+</LinearLayout>
