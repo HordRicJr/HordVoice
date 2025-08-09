@@ -8,7 +8,6 @@ import 'services/environment_config.dart';
 import 'services/permission_manager_service.dart';
 import 'services/unified_hordvoice_service.dart';
 import 'services/quick_settings_service.dart';
-import 'services/home_widget_service.dart';
 import 'services/auth_service.dart';
 import 'views/voice_onboarding_view.dart';
 import 'views/home_view.dart';
@@ -57,15 +56,6 @@ void main() async {
     debugPrint('Quick Settings Service initialisé');
   } catch (e) {
     debugPrint('Erreur initialisation Quick Settings: $e');
-  }
-
-  // Initialiser Home Widget Service
-  try {
-    final homeWidgetService = HomeWidgetService();
-    await homeWidgetService.initialize();
-    debugPrint('Home Widget Service initialisé');
-  } catch (e) {
-    debugPrint('Erreur initialisation Home Widget: $e');
   }
 
   runApp(const ProviderScope(child: HordVoiceApp()));

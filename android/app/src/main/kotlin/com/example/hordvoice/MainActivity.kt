@@ -7,9 +7,13 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.hordvoice/quick_settings"
+    private lateinit var telephonyService: TelephonyNativeService
     
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // Initialiser le service de téléphonie natif
+        telephonyService = TelephonyNativeService(this, flutterEngine)
         
         // Mettre le FlutterEngine en cache pour le Quick Settings
         FlutterEngineCache

@@ -16,7 +16,7 @@ dependencies:
   permission_handler: 11.3.1
   google_fonts: 6.3.0
   device_info_plus: ^11.0.0
-  logger: 2.0.1
+  logger: ^2.6.1
   intl: 0.20.2
   http: 1.5.0
   shared_preferences: 2.5.3
@@ -25,7 +25,6 @@ dependencies:
 
   # VOIX  Reconnaissance et synthèse COMPLÈTE
   azure_speech_recognition_flutter: ^1.0.0  # Azure Speech Recognition
-  speech_to_text: ^6.6.2          # Reconnaissance vocale locale et cloud
   avatar_glow: 2.0.2              # Animation microphone
   flutter_tts: 3.8.5             # Synthèse vocale (version stable)
   flutter_secure_storage: ^9.2.2  # Stockage sécurisé profil vocal
@@ -79,16 +78,14 @@ dependencies:
   responsive_framework: ^1.5.1
   health: ^13.1.1
 
-  # NEW DEPENDENCIES - Communication et Système
+  # NEW DEPENDENCIES - Communication et Système (TEMPORAIREMENT SIMPLIFIÉES)
   flutter_app_info: ^3.0.3     # Informations application
-  window_manager: ^0.3.9        # Contrôle fenêtres
-  wallpaper_setter: ^0.0.4     # Changement fond d'écran
-  home_widget: ^0.6.0          # Widget écran d'accueil
+  # window_manager: ^0.3.9        # Contrôle fenêtres - DÉSACTIVÉ
+  # wallpaper_setter: ^0.0.4     # Changement fond d'écran - DÉSACTIVÉ  
+  # home_widget: ^0.6.0          # Widget écran d'accueil - DÉSACTIVÉ
 
-  # TÉLÉPHONIE - Appels et communication
-  call_log: ^6.0.0             # Journal des appels (version compatible Android)
-  flutter_phone_direct_caller: ^2.1.1  # Appels directs
-  another_telephony: ^0.4.1    # SMS et téléphonie
+  # TÉLÉPHONIE - Via permissions natives Android (sans packages tiers)
+  # Les fonctionnalités SMS/Appels seront gérées via platform channels natifs
 
   # SURVEILLANCE TÉLÉPHONE - Santé et performance
   app_usage: ^4.0.1            # Usage applications  
@@ -108,14 +105,14 @@ dependencies:
   animations: ^2.0.11            # Animations onboarding fluides
   rive: ^0.13.15                 # Animations avatar avancées
   flutter_dotenv: ^5.1.0         # Gestion fichiers .env
-  mic_stream: ^0.7.2             # Stream audio microphone
+  mic_stream_recorder: ^1.1.2    # Stream audio microphone (package maintenu)
   permission_handler_platform_interface: ^4.2.3  # Interface permissions
   wakelock_plus: ^1.2.8          # Wake lock pour écoute continue
   flutter_azure_tts: ^1.0.0
 
   # PACKAGES MANQUANTS - Ajout pour finalisation voice-only
 
-  record: ^5.1.2                 # Enregistrement audio natif
+  flutter_sound: ^9.16.3        # Alternative stable pour l'audio
   path: ^1.9.0                   # Gestion paths fichiers
   dio: ^5.7.0                    # HTTP client avancé pour APIs
   cached_network_image: ^3.4.1   # Cache images (logos/assets)
@@ -130,15 +127,27 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1  # Configuration icônes
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/images/hordVoice.png"
+  min_sdk_android: 26
+  web:
+    generate: true
+    image_path: "assets/images/hordVoice.png"
+  windows:
+    generate: true
+    image_path: "assets/images/hordVoice.png"
+    icon_size: 48
 
 flutter:
   uses-material-design: true
 
-
-
-  # To add assets to your application, add an assets section, like this:
-assets:
-     - assets/images/
+  # Assets de l'application
+  assets:
+    - assets/images/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

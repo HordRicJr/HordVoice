@@ -77,7 +77,7 @@
     <application
         android:label="HordVoice"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -100,38 +100,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        
-        <!-- Quick Settings Tile Service -->
-        <service
-            android:name=".HordVoiceQuickSettingsTile"
-            android:icon="@android:drawable/ic_btn_speak_now"
-            android:label="@string/quick_settings_hordvoice_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.quicksettings.TILE_DESCRIPTION"
-                android:value="@string/quick_settings_hordvoice_description" />
-            <meta-data
-                android:name="android.service.quicksettings.TILE"
-                android:resource="@xml/quick_settings_tile" />
-        </service>
-        
-        <!-- Home Screen Widget -->
-        <receiver
-            android:name=".HordVoiceWidget"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.example.hordvoice.TOGGLE_LISTENING" />
-                <action android:name="com.example.hordvoice.QUICK_COMMAND" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/hord_voice_widget_info" />
-        </receiver>
         
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

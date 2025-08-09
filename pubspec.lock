@@ -25,14 +25,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.11"
-  another_telephony:
-    dependency: "direct main"
-    description:
-      name: another_telephony
-      sha256: "7dd16759099ea3e4ce762c4f5bbfa097940335555d5caa916aaa52eec6a70cb6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.1"
   app_links:
     dependency: transitive
     description:
@@ -241,14 +233,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
-  call_log:
-    dependency: "direct main"
-    description:
-      name: call_log
-      sha256: "72979f958366acfdf7a194c11ca5ace609e58a6d71b25074a891a3e87493f35f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.0.0"
   camera:
     dependency: "direct main"
     description:
@@ -305,6 +289,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  checked_yaml:
+    dependency: transitive
+    description:
+      name: checked_yaml
+      sha256: "959525d3162f249993882720d52b7e0c833978df229be20702b33d48d91de70f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.4"
+  cli_util:
+    dependency: transitive
+    description:
+      name: cli_util
+      sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
   clock:
     dependency: transitive
     description:
@@ -550,6 +550,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.2.1"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      sha256: "526faf84284b86a4cb36d20a5e45147747b7563d921373d4ee0559c54fcdbcea"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.13.1"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -590,14 +598,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.2"
-  flutter_phone_direct_caller:
-    dependency: "direct main"
-    description:
-      name: flutter_phone_direct_caller
-      sha256: "8f166b12391572ce5872feeac3f4b47f455ee314ef221d98ba160c296ae2fad3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -670,6 +670,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.3"
+  flutter_sound:
+    dependency: "direct main"
+    description:
+      name: flutter_sound
+      sha256: ef89477f6e8ce2fa395158ebc4a8b11982e3ada440b4021c06fd97a4e771554b
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.28.0"
+  flutter_sound_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_sound_platform_interface
+      sha256: "3394d7e664a09796818014ff85a81db0dec397f4c286cbe52f8783886fa5a497"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.28.0"
+  flutter_sound_web:
+    dependency: transitive
+    description:
+      name: flutter_sound_web
+      sha256: "4e10c94a8574bd93bb8668af59bf76f5312a890bccd3778d73168a7133217dc5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.28.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -928,14 +952,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
-  home_widget:
-    dependency: "direct main"
-    description:
-      name: home_widget
-      sha256: "2a0fdd6267ff975bd07bedf74686bd5577200f504f5de36527ac1b56bdbe68e3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.0"
   http:
     dependency: "direct main"
     description:
@@ -1092,10 +1108,10 @@ packages:
     dependency: "direct main"
     description:
       name: logger
-      sha256: "66cb048220ca51cf9011da69fa581e4ee2bed4be6e82870d9e9baae75739da49"
+      sha256: "55d6c23a6c15db14920e037fe7e0dc32e7cdaf3b64b4b25df2d541b5b6b81c0c"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "2.6.1"
   logging:
     dependency: transitive
     description:
@@ -1144,14 +1160,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mic_stream:
+  mic_stream_recorder:
     dependency: "direct main"
     description:
-      name: mic_stream
-      sha256: cd024113c2e25d32172af483816cef49eb808458ceb3186fa4e3e53353bf13cd
+      name: mic_stream_recorder
+      sha256: "73965991ef5cc93d2b0c1e6d590cbd567a853b9ee7b2d52de43a73f185bb0d9c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.2"
+    version: "1.1.2"
   mime:
     dependency: transitive
     description:
@@ -1400,62 +1416,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.1"
-  record:
-    dependency: "direct main"
-    description:
-      name: record
-      sha256: "2e3d56d196abcd69f1046339b75e5f3855b2406fc087e5991f6703f188aa03a6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.1"
-  record_android:
-    dependency: transitive
-    description:
-      name: record_android
-      sha256: "97d7122455f30de89a01c6c244c839085be6b12abca251fc0e78f67fed73628b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.3"
-  record_darwin:
-    dependency: transitive
-    description:
-      name: record_darwin
-      sha256: e487eccb19d82a9a39cd0126945cfc47b9986e0df211734e2788c95e3f63c82c
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.2.2"
-  record_linux:
-    dependency: transitive
-    description:
-      name: record_linux
-      sha256: "74d41a9ebb1eb498a38e9a813dd524e8f0b4fdd627270bda9756f437b110a3e3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.7.2"
-  record_platform_interface:
-    dependency: transitive
-    description:
-      name: record_platform_interface
-      sha256: c1ad38f51e4af88a085b3e792a22c685cb3e7c23fc37aa7ce44c4cf18f25fe89
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.0"
-  record_web:
-    dependency: transitive
-    description:
-      name: record_web
-      sha256: a12856d0b3dd03d336b4b10d7520a8b3e21649a06a8f95815318feaa8f07adbb
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.9"
-  record_windows:
-    dependency: transitive
-    description:
-      name: record_windows
-      sha256: "85a22fc97f6d73ecd67c8ba5f2f472b74ef1d906f795b7970f771a0914167e99"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.6"
   responsive_framework:
     dependency: "direct main"
     description:
@@ -1552,14 +1512,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
-  screen_retriever:
-    dependency: transitive
-    description:
-      name: screen_retriever
-      sha256: "6ee02c8a1158e6dae7ca430da79436e3b1c9563c8cf02f524af997c201ac2b90"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.9"
   share_plus:
     dependency: "direct main"
     description:
@@ -1973,14 +1925,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.3"
-  wallpaper_setter:
-    dependency: "direct main"
-    description:
-      name: wallpaper_setter
-      sha256: "0c8f9269ee9ae7d116f5e464b647d58b6d21afb6842a95d61b0fc42804b37288"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.4"
   web:
     dependency: transitive
     description:
@@ -2061,14 +2005,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
-  window_manager:
-    dependency: "direct main"
-    description:
-      name: window_manager
-      sha256: "8699323b30da4cdbe2aa2e7c9de567a6abd8a97d9a5c850a3c86dcd0b34bbfbf"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.9"
   wkt_parser:
     dependency: transitive
     description:
@@ -2093,6 +2029,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.5.0"
+  yaml:
+    dependency: transitive
+    description:
+      name: yaml
+      sha256: b9da305ac7c39faa3f030eccd175340f968459dae4af175130b3fc47e40d76ce
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.3"
   yet_another_json_isolate:
     dependency: transitive
     description:

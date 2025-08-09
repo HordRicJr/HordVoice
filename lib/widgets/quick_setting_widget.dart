@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/quick_settings_service.dart';
-import '../services/home_widget_service.dart';
+import 'package:flutter/services.dart';
 
-/// Widget pour tester et gérer les Quick Settings et Home Widgets
+/// Widget pour les paramètres rapides de HordVoice
 class QuickSettingWidget extends StatefulWidget {
   const QuickSettingWidget({super.key});
 
@@ -11,217 +10,165 @@ class QuickSettingWidget extends StatefulWidget {
 }
 
 class _QuickSettingWidgetState extends State<QuickSettingWidget> {
-  final QuickSettingsService _quickSettingsService = QuickSettingsService();
-  final HomeWidgetService _homeWidgetService = HomeWidgetService();
-
+  static const platform = MethodChannel('com.hordvoice/quick_settings');
   bool _isListening = false;
-  bool _quickSettingsReady = false;
-  bool _homeWidgetReady = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeServices();
+    _checkInitialState();
   }
 
-  Future<void> _initializeServices() async {
+  Future<void> _checkInitialState() async {
     try {
-      // Vérifier l'état des services
-      await _quickSettingsService.initialize();
-      setState(() {
-        _quickSettingsReady = _quickSettingsService.isInitialized;
-      });
-
-      await _homeWidgetService.initialize();
-      setState(() {
-        _homeWidgetReady = _homeWidgetService.isInitialized;
-        _isListening = _homeWidgetService.isListening;
-      });
-
-      debugPrint('Services Quick Settings et Widget initialisés');
-    } catch (e) {
-      debugPrint('Erreur initialisation services: $e');
+      final result = await platform.invokeMethod('test');
+      print('Quick Settings test: $result');
+    } on PlatformException catch (e) {
+      print("Failed to communicate with platform: '${e.message}'.");
     }
   }
 
   Future<void> _toggleListening() async {
+    setState(() {
+      _isListening = !_isListening;
+    });
+
     try {
-      setState(() {
-        _isListening = !_isListening;
+      await platform.invokeMethod('updateTileState', {
+        'isListening': _isListening,
       });
-
-      // Mettre à jour Quick Settings
-      await _quickSettingsService.updateQuickSettingsState(_isListening);
-
-      // Mettre à jour Home Widget
-      await _homeWidgetService.setListeningState(_isListening);
-
-      debugPrint('État écoute mis à jour: $_isListening');
-    } catch (e) {
-      debugPrint('Erreur toggle listening: $e');
-    }
-  }
-
-  Future<void> _testQuickSettings() async {
-    try {
-      final success = await _quickSettingsService.testQuickSettings();
-      _showSnackBar(success ? 'Quick Settings OK' : 'Quick Settings KO');
-    } catch (e) {
-      _showSnackBar('Erreur Quick Settings: $e');
-    }
-  }
-
-  Future<void> _testHomeWidget() async {
-    try {
-      final success = await _homeWidgetService.testWidget();
-      _showSnackBar(success ? 'Home Widget OK' : 'Home Widget KO');
-    } catch (e) {
-      _showSnackBar('Erreur Home Widget: $e');
-    }
-  }
-
-  void _showSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
-      );
+    } on PlatformException catch (e) {
+      print("Failed to update tile state: '${e.message}'.");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(8.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('HordVoice Quick Settings'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Header
-            Row(
-              children: [
-                Icon(
-                  Icons.settings_applications,
-                  color: Theme.of(context).primaryColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Quick Settings & Widgets',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            Icon(
+              _isListening ? Icons.mic : Icons.mic_off,
+              size: 100,
+              color: _isListening ? Colors.green : Colors.red,
             ),
-            const SizedBox(height: 16),
-
-            // État des services
-            _buildServiceStatus(),
-            const SizedBox(height: 16),
-
-            // Contrôles principaux
-            _buildMainControls(),
-            const SizedBox(height: 16),
-
-            // Tests
-            _buildTestSection(),
+            const SizedBox(height: 20),
+            Text(
+              _isListening ? 'HordVoice Listening...' : 'HordVoice Stopped',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _toggleListening,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isListening ? Colors.red : Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 15,
+                ),
+              ),
+              child: Text(
+                _isListening ? 'Stop Listening' : 'Start Listening',
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Card(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Quick Actions',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildQuickAction(
+                          icon: Icons.volume_up,
+                          label: 'Volume',
+                          onTap: () => _handleQuickAction('volume'),
+                        ),
+                        _buildQuickAction(
+                          icon: Icons.brightness_6,
+                          label: 'Brightness',
+                          onTap: () => _handleQuickAction('brightness'),
+                        ),
+                        _buildQuickAction(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          onTap: () => _handleQuickAction('settings'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildServiceStatus() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'État des services:',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            _buildStatusIndicator('Quick Settings', _quickSettingsReady),
-            const SizedBox(width: 16),
-            _buildStatusIndicator('Home Widget', _homeWidgetReady),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatusIndicator(String label, bool isReady) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          isReady ? Icons.check_circle : Icons.error,
-          color: isReady ? Colors.green : Colors.red,
-          size: 16,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: isReady ? Colors.green : Colors.red,
-            fontSize: 12,
+  Widget _buildQuickAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 30, color: Theme.of(context).primaryColor),
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
+      ),
     );
   }
 
-  Widget _buildMainControls() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Contrôles:', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _toggleListening,
-            icon: Icon(_isListening ? Icons.mic : Icons.mic_off),
-            label: Text(
-              _isListening ? 'Désactiver Assistant' : 'Activer Assistant',
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isListening ? Colors.red : Colors.green,
-              foregroundColor: Colors.white,
-            ),
+  Future<void> _handleQuickAction(String action) async {
+    try {
+      await platform.invokeMethod('quickAction', {'action': action});
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$action action executed'),
+            duration: const Duration(seconds: 2),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTestSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Tests:', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _testQuickSettings,
-                icon: const Icon(Icons.flash_on),
-                label: const Text('Test QS'),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: _testHomeWidget,
-                icon: const Icon(Icons.widgets),
-                label: const Text('Test Widget'),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+        );
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to execute $action: ${e.message}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
