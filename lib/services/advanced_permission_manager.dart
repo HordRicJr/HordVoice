@@ -107,7 +107,7 @@ class AdvancedPermissionManager {
 
     // Vérifier si déjà demandées récemment
     if (await _wasRecentlyRequested(category)) {
-      debugPrint('⏱️ Permissions $category demandées récemment, skip');
+      debugPrint('Permissions $category demandées récemment, skip');
       final currentStatuses = await _checkPermissionsStatus(permissions);
       return PermissionRequestResult(
         category: category,
@@ -157,7 +157,7 @@ class AdvancedPermissionManager {
         // Enregistrer tentative
         await _recordPermissionAttempt(permission, newStatus);
       } catch (e) {
-        debugPrint('❌ Erreur demande permission $permission: $e');
+        debugPrint('Erreur demande permission $permission: $e');
         results[permission] = PermissionStatus.denied;
       }
     }
@@ -187,7 +187,7 @@ class AdvancedPermissionManager {
       try {
         statuses[permission] = await permission.status;
       } catch (e) {
-        debugPrint('❌ Erreur vérification $permission: $e');
+        debugPrint('Erreur vérification $permission: $e');
         statuses[permission] = PermissionStatus.denied;
       }
     }
@@ -369,13 +369,13 @@ class AdvancedPermissionManager {
         .length;
 
     if (granted == total) {
-      return '✅ Toutes les permissions $category accordées ($granted/$total)';
+      return 'Toutes les permissions $category accordées ($granted/$total)';
     } else if (granted > 0) {
-      return '⚠️ Permissions $category partielles ($granted/$total accordées)';
+      return 'Permissions $category partielles ($granted/$total accordées)';
     } else if (permanentlyDenied > 0) {
-      return '🔒 Permissions $category bloquées. Veuillez les activer dans les paramètres.';
+      return 'Permissions $category bloquées. Veuillez les activer dans les paramètres.';
     } else {
-      return '❌ Permissions $category refusées ($denied/$total)';
+      return 'Permissions $category refusées ($denied/$total)';
     }
   }
 

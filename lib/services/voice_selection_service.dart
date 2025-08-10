@@ -102,7 +102,7 @@ class VoiceSelectionService {
   /// Détermine la catégorie d'une voix
   String _getCategoryForVoice(VoiceOption voice) {
     if (voice.style == 'Chaleureux' || voice.style == 'Multiculturel') {
-      return '🌍 Voix Africaines & Multiculturelles';
+      return 'Voix Africaines & Multiculturelles';
     } else if (voice.style == 'Sage') {
       return '👴 Voix Sages (Grand-parent)';
     } else if (voice.style == 'Romantique') {
@@ -116,7 +116,7 @@ class VoiceSelectionService {
     } else if (voice.language == 'en') {
       return '🇬🇧 Voix Anglaises';
     } else {
-      return '🎭 Autres Voix';
+      return 'Autres Voix';
     }
   }
 

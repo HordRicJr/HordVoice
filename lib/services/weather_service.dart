@@ -224,32 +224,32 @@ class WeatherService {
     switch (iconCode) {
       case '01d':
       case '01n':
-        return '☀️';
+        return 'Ensoleillé';
       case '02d':
       case '02n':
-        return '⛅';
+        return 'Partiellement nuageux';
       case '03d':
       case '03n':
       case '04d':
       case '04n':
-        return '☁️';
+        return 'Nuageux';
       case '09d':
       case '09n':
-        return '🌧️';
+        return 'Pluie';
       case '10d':
       case '10n':
-        return '🌦️';
+        return 'Averse';
       case '11d':
       case '11n':
-        return '⛈️';
+        return 'Orage';
       case '13d':
       case '13n':
-        return '❄️';
+        return 'Neige';
       case '50d':
       case '50n':
-        return '🌫️';
+        return 'Brouillard';
       default:
-        return '🌤️';
+        return 'Partiellement nuageux';
     }
   }
 

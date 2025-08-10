@@ -492,11 +492,11 @@ class SecretCommandsService {
 
   Future<String> _activateEasterEgg(Map<String, String> parameters) async {
     final easterEggs = [
-      'Konami Code activé! 🎮',
-      '42 est effectivement la réponse à tout! 🤖',
-      'La force est forte avec vous, jeune Padawan! ⭐',
-      'Il y a un serpent dans ma botte! 🤠',
-      'May the voice be with you! 🎤',
+      'Konami Code activé!',
+      '42 est effectivement la réponse à tout!',
+      'La force est forte avec vous, jeune Padawan!',
+      'Il y a un serpent dans ma botte!',
+      'May the voice be with you!',
     ];
 
     final random = Random();

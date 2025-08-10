@@ -10,18 +10,29 @@ class HealthMonitoringService {
     _isInitialized = true;
     _health = Health();
 
+    // Types de données de santé compatibles Android et iOS
     _healthDataTypes = [
       HealthDataType.STEPS,
       HealthDataType.HEART_RATE,
-      HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
-      HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
       HealthDataType.WEIGHT,
       HealthDataType.HEIGHT,
       HealthDataType.BODY_MASS_INDEX,
       HealthDataType.ACTIVE_ENERGY_BURNED,
-      HealthDataType.SLEEP_IN_BED,
       HealthDataType.WATER,
     ];
+
+    // Ajouter des types spécifiques selon la plateforme
+    if (!kIsWeb) {
+      try {
+        // Types additionnels pour Android/iOS si disponibles
+        _healthDataTypes.addAll([
+          HealthDataType.BLOOD_PRESSURE_SYSTOLIC,
+          HealthDataType.BLOOD_PRESSURE_DIASTOLIC,
+        ]);
+      } catch (e) {
+        debugPrint('Certains types de données santé non disponibles: $e');
+      }
+    }
 
     try {
       await _requestHealthPermissions();
@@ -53,7 +64,6 @@ class HealthMonitoringService {
 
     try {
       final now = DateTime.now();
-      final startOfDay = DateTime(now.year, now.month, now.day);
 
       final steps = await getStepsToday();
       final heartRate = await getLatestHeartRate();

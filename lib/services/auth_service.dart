@@ -6,7 +6,7 @@ import '../models/user_profile.dart';
 /// Service d'authentification HordVoice avec intégration Supabase
 /// Gère l'authentification, la création de profils et la synchronisation
 class AuthService extends ChangeNotifier {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  SupabaseClient? _supabase;
 
   User? _currentUser;
   UserProfile? _currentProfile;
@@ -20,12 +20,18 @@ class AuthService extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _currentUser != null;
 
+  /// Initialise le client Supabase
+  SupabaseClient get client {
+    _supabase ??= Supabase.instance.client;
+    return _supabase!;
+  }
+
   /// Vérifie si un utilisateur est connecté
   Future<bool> isUserLoggedIn() async {
     try {
       // Vérifier d'abord la session locale
-      final session = _supabase.auth.currentSession;
-      final user = _supabase.auth.currentUser;
+      final session = client.auth.currentSession;
+      final user = client.auth.currentUser;
 
       if (session != null && user != null) {
         // Vérifier si la session est encore valide
@@ -40,8 +46,8 @@ class AuthService extends ChangeNotifier {
 
       // Essayer de renouveler la session
       try {
-        await _supabase.auth.refreshSession();
-        final refreshedUser = _supabase.auth.currentUser;
+        await client.auth.refreshSession();
+        final refreshedUser = client.auth.currentUser;
         if (refreshedUser != null) {
           _currentUser = refreshedUser;
           return true;
@@ -66,10 +72,10 @@ class AuthService extends ChangeNotifier {
 
   /// Initialise le service d'authentification
   void _initializeAuth() {
-    _currentUser = _supabase.auth.currentUser;
+    _currentUser = client.auth.currentUser;
 
     // Écouter les changements d'authentification
-    _authSubscription = _supabase.auth.onAuthStateChange.listen((data) {
+    _authSubscription = client.auth.onAuthStateChange.listen((data) {
       _currentUser = data.session?.user;
 
       if (_currentUser != null) {
@@ -96,7 +102,7 @@ class AuthService extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      final AuthResponse response = await _supabase.auth.signInWithPassword(
+      final AuthResponse response = await client.auth.signInWithPassword(
         email: email.trim(),
         password: password,
       );
@@ -134,7 +140,7 @@ class AuthService extends ChangeNotifier {
       _clearError();
 
       // 1. Créer le compte utilisateur
-      final AuthResponse response = await _supabase.auth.signUp(
+      final AuthResponse response = await client.auth.signUp(
         email: email.trim(),
         password: password,
         data: {'full_name': fullName, 'phone_number': phoneNumber},
@@ -174,7 +180,7 @@ class AuthService extends ChangeNotifier {
   Future<void> signOut() async {
     try {
       _setLoading(true);
-      await _supabase.auth.signOut();
+      await client.auth.signOut();
       _currentUser = null;
       _currentProfile = null;
     } catch (e) {
@@ -190,7 +196,7 @@ class AuthService extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      await _supabase.auth.resetPasswordForEmail(
+      await client.auth.resetPasswordForEmail(
         email.trim(),
         redirectTo: 'https://hordvoice.com/reset-password',
       );
@@ -236,7 +242,7 @@ class AuthService extends ChangeNotifier {
 
       updates['updated_at'] = DateTime.now().toIso8601String();
 
-      await _supabase
+      await client
           .from('user_profiles')
           .update(updates)
           .eq('id', _currentUser!.id);
@@ -256,7 +262,7 @@ class AuthService extends ChangeNotifier {
     if (_currentUser == null) return;
 
     try {
-      final response = await _supabase
+      final response = await client
           .from('user_profiles')
           .select()
           .eq('id', _currentUser!.id)
@@ -309,7 +315,7 @@ class AuthService extends ChangeNotifier {
       'updated_at': DateTime.now().toIso8601String(),
     };
 
-    await _supabase.from('user_profiles').insert(profileData);
+    await client.from('user_profiles').insert(profileData);
   }
 
   /// Traduit les messages d'erreur d'authentification

@@ -39,7 +39,8 @@ class UnifiedHordVoiceService {
   factory UnifiedHordVoiceService() => _instance;
   UnifiedHordVoiceService._internal();
 
-  late SupabaseClient _supabase;
+  // Modification: Supabase peut être null si pas encore initialisé
+  SupabaseClient? _supabase;
   late FlutterTts _tts;
   late Battery _battery;
   late FlutterLocalNotificationsPlugin _notifications;
@@ -49,6 +50,8 @@ class UnifiedHordVoiceService {
   Timer? _batteryTimer;
   Timer? _wakeWordTimer;
   bool _isInitialized = false;
+  bool _isInitializing = false;
+  bool _secondaryInitialized = false;
   bool _isListening = false;
   bool _wakeWordActive = false;
   String _currentMood = 'neutral';
@@ -100,12 +103,32 @@ class UnifiedHordVoiceService {
   Stream<bool> get wakeWordStream => _wakeWordController.stream;
   Stream<bool> get isSpeakingStream => _isSpeakingController.stream;
 
-  Future<void> initialize() async {
-    if (_isInitialized) return;
+  /// Initialisation progressive - Services essentiels
+  Future<void> initializeCore() async {
+    if (_isInitialized) {
+      debugPrint('UnifiedHordVoiceService déjà initialisé - Ignorer');
+      return;
+    }
+
+    // Protection contre les appels multiples simultanés
+    if (_isInitializing) {
+      debugPrint('Initialisation en cours - Attendre');
+      return;
+    }
+
+    _isInitializing = true;
 
     try {
-      // L'initialisation Supabase est maintenant fait dans main.dart
-      _supabase = Supabase.instance.client;
+      debugPrint('🚀 DÉBUT Initialisation UnifiedHordVoiceService');
+
+      // Vérifier que Supabase est initialisé
+      try {
+        _supabase = Supabase.instance.client;
+      } catch (e) {
+        throw Exception(
+          'Supabase doit être initialisé avant UnifiedHordVoiceService: $e',
+        );
+      }
 
       _tts = FlutterTts();
       _battery = Battery();
@@ -113,50 +136,127 @@ class UnifiedHordVoiceService {
 
       await _initializeNotifications();
       await _initializeTTS();
-      await _initializeServices();
 
+      // Initialiser seulement les services essentiels
+      _aiService = AzureOpenAIService();
+      _azureSpeechService = AzureSpeechService();
+      _emotionAnalysisService = EmotionAnalysisService();
+
+      try {
+        await _aiService.initialize();
+      } catch (e) {
+        debugPrint('Avertissement: AzureOpenAI non disponible: $e');
+      }
+
+      try {
+        await _azureSpeechService.initialize();
+      } catch (e) {
+        debugPrint('Avertissement: AzureSpeech non disponible: $e');
+      }
+
+      try {
+        await _emotionAnalysisService.initialize();
+      } catch (e) {
+        debugPrint('Avertissement: EmotionAnalysis non disponible: $e');
+      }
+
+      debugPrint('Services essentiels initialisés');
       _isInitialized = true;
-
-      await _startSystemMonitoring();
-      await _startWakeWordDetection(); // Démarrer la détection automatique
-
-      debugPrint('UnifiedHordVoiceService initialisé avec succès');
+      debugPrint('✅ FIN Initialisation UnifiedHordVoiceService - SUCCÈS');
     } catch (e) {
-      debugPrint('Erreur lors de l\'initialisation du service: $e');
-      rethrow;
+      debugPrint(
+        'Erreur lors de l\'initialisation des services essentiels: $e',
+      );
+      throw e;
+    } finally {
+      _isInitializing = false;
     }
   }
 
-  Future<void> _initializeServices() async {
-    _aiService = AzureOpenAIService();
-    _azureSpeechService = AzureSpeechService();
-    _emotionAnalysisService = EmotionAnalysisService();
-    _weatherService = WeatherService();
-    _newsService = NewsService();
-    _spotifyService = SpotifyService();
-    _navigationService = NavigationService();
-    _calendarService = CalendarService();
-    _healthService = HealthMonitoringService();
-    _phoneMonitoringService = PhoneMonitoringService();
-    _batteryMonitoringService = BatteryMonitoringService();
-    _voiceManagementService = VoiceManagementService(); // Étape 11
-    _quickSettingsService = QuickSettingsService(); // Contrôles vocaux
-    _transitionService = TransitionAnimationService(); // Transitions avatar
+  /// Initialisation progressive - Services secondaires
+  Future<void> initializeSecondary() async {
+    if (_secondaryInitialized) {
+      debugPrint('Services secondaires déjà initialisés - Ignorer');
+      return;
+    }
 
-    await _aiService.initialize();
-    await _azureSpeechService.initialize();
-    await _emotionAnalysisService.initialize();
-    await _weatherService.initialize();
-    await _newsService.initialize();
-    await _spotifyService.initialize();
-    await _navigationService.initialize();
-    await _calendarService.initialize();
-    await _healthService.initialize();
-    await _phoneMonitoringService.initialize();
-    await _batteryMonitoringService.initialize();
-    await _voiceManagementService.initialize(); // Étape 11
-    await _quickSettingsService.initialize(); // Contrôles vocaux
-    await _transitionService.initialize(); // Transitions avatar
+    // Marquer immédiatement pour éviter les appels multiples
+    _secondaryInitialized = true;
+
+    try {
+      debugPrint('🔧 DÉBUT Initialisation services secondaires');
+
+      // Initialiser les services secondaires
+      _weatherService = WeatherService();
+      _newsService = NewsService();
+      _spotifyService = SpotifyService();
+      _navigationService = NavigationService();
+      _calendarService = CalendarService();
+      _healthService = HealthMonitoringService();
+      _phoneMonitoringService = PhoneMonitoringService();
+      _batteryMonitoringService = BatteryMonitoringService();
+      _voiceManagementService = VoiceManagementService();
+      _quickSettingsService = QuickSettingsService();
+      _transitionService = TransitionAnimationService();
+
+      // Initialisation safe avec gestion d'erreurs
+      final services = [
+        () => _weatherService.initialize(),
+        () => _newsService.initialize(),
+        () => _spotifyService.initialize(),
+        () => _navigationService.initialize(),
+        () => _calendarService.initialize(),
+        () => _healthService.initialize(),
+        () => _phoneMonitoringService.initialize(),
+        () => _batteryMonitoringService.initialize(),
+        () => _voiceManagementService.initialize(),
+        () => _quickSettingsService.initialize(),
+        () => _transitionService.initialize(),
+      ];
+
+      for (final serviceInitializer in services) {
+        try {
+          await serviceInitializer();
+        } catch (e) {
+          debugPrint('Avertissement: Un service secondaire a échoué: $e');
+          // Continuer avec les autres services
+        }
+      }
+
+      _isInitialized = true;
+
+      // Démarrer les services de monitoring
+      try {
+        await _startSystemMonitoring();
+        await _startWakeWordDetection();
+      } catch (e) {
+        debugPrint('Avertissement: Monitoring non disponible: $e');
+      }
+
+      debugPrint('Tous les services initialisés');
+    } catch (e) {
+      debugPrint(
+        'Erreur lors de l\'initialisation des services secondaires: $e',
+      );
+      // En cas d'erreur, on garde _secondaryInitialized = true pour éviter les boucles
+      debugPrint(
+        'Services secondaires marqués comme initialisés malgré l\'erreur',
+      );
+    }
+  }
+
+  Future<void> initialize() async {
+    // Méthode complète pour compatibilité
+    // Éviter la double initialisation
+    if (_isInitialized) {
+      debugPrint(
+        'UnifiedHordVoiceService déjà complètement initialisé - Ignorer',
+      );
+      return;
+    }
+
+    await initializeCore();
+    await initializeSecondary();
   }
 
   Future<void> _initializeNotifications() async {
@@ -183,12 +283,17 @@ class UnifiedHordVoiceService {
     if (_currentUser != null) return _currentUser;
 
     try {
+      if (_supabase == null) {
+        debugPrint('Supabase non initialisé');
+        return null;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       final deviceId = prefs.getString('device_id');
 
       if (deviceId == null) return null;
 
-      final response = await _supabase
+      final response = await _supabase!
           .from('user_profiles')
           .select()
           .eq('device_id', deviceId)
@@ -210,6 +315,12 @@ class UnifiedHordVoiceService {
     String relationshipMode = 'ami',
   }) async {
     try {
+      if (_supabase == null) {
+        throw Exception(
+          'Supabase non initialisé pour la création d\'utilisateur',
+        );
+      }
+
       final deviceInfo = DeviceInfoPlugin();
       String deviceId;
 
@@ -232,7 +343,7 @@ class UnifiedHordVoiceService {
         'last_active': DateTime.now().toIso8601String(),
       };
 
-      final response = await _supabase
+      final response = await _supabase!
           .from('user_profiles')
           .insert(userData)
           .select()
@@ -680,13 +791,17 @@ class UnifiedHordVoiceService {
     _currentMood = emotion;
     _moodController.add(emotion);
 
-    if (_currentUser != null) {
-      await _supabase.from('emotion_logs').insert({
-        'user_id': _currentUser!.id,
-        'emotion_type': emotion,
-        'detection_method': 'voice_analysis',
-        'created_at': DateTime.now().toIso8601String(),
-      });
+    if (_currentUser != null && _supabase != null) {
+      try {
+        await _supabase!.from('emotion_logs').insert({
+          'user_id': _currentUser!.id,
+          'emotion_type': emotion,
+          'detection_method': 'voice_analysis',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      } catch (e) {
+        debugPrint('Erreur lors de l\'enregistrement de l\'émotion: $e');
+      }
     }
   }
 
@@ -781,7 +896,12 @@ class UnifiedHordVoiceService {
     String context,
   ) async {
     try {
-      final response = await _supabase
+      if (_supabase == null) {
+        debugPrint('Supabase non initialisé pour les réponses de personnalité');
+        return [];
+      }
+
+      final response = await _supabase!
           .from('ai_personality_responses')
           .select()
           .eq('response_type', responseType)

@@ -83,6 +83,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     
+    <!-- Permissions pour apparaître dans les paramètres Android -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    
     <!-- Features matériel -->
     <uses-feature android:name="android.hardware.microphone" android:required="true" />
     <uses-feature android:name="android.hardware.audio.output" android:required="true" />
@@ -115,9 +120,19 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Intents pour apparaître dans les paramètres Android -->
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.settings.APPLICATION_DETAILS_SETTINGS" />
+                <data android:scheme="package" />
+            </intent-filter>
         </activity>
         
         <!-- HordVoice Quick Settings Tile Service -->
+        <!-- Temporairement désactivé - classe manquante
         <service
             android:name=".HordVoiceQuickTile"
             android:exported="true"
@@ -131,7 +146,19 @@
                 android:name="android.service.quicksettings.ACTIVE_TILE"
                 android:value="true" />
         </service>
+        -->
         
+        <!-- Azure Speech Service Configuration -->
+        <meta-data
+            android:name="com.microsoft.cognitiveservices.speech.subscription_key"
+            android:value="BWkbBCvtCTaZB6ijvlJsYgFgSCSLxo3ARJp8835NL3fE24vrDcRIJQQJ99BHACYeBjFXJ3w3AAAYACOGFcSl" />
+        <meta-data
+            android:name="com.microsoft.cognitiveservices.speech.region"
+            android:value="eastus" />
+        <meta-data
+            android:name="com.microsoft.cognitiveservices.speech.endpoint"
+            android:value="https://eastus.api.cognitive.microsoft.com/" />
+            
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

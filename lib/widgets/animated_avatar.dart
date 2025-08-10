@@ -159,20 +159,28 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
 
     return Transform.translate(
       offset: Offset(tickleOffset, 0),
-      child: Transform.scale(
-        scale: scale,
-        child: Container(
-          width: widget.size,
-          height: widget.size,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              _buildAura(avatarState),
-              _buildAvatarBody(avatarState, faceParams),
-              _buildSurfaceEffects(avatarState),
-              if (avatarState.isListening) _buildListeningIndicator(),
-              if (avatarState.isSpeaking) _buildSpeakingIndicator(),
-            ],
+      child: Transform(
+        alignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.001) // Perspective
+          ..rotateX(0.1 * math.sin(_breathingAnimation.value * 2 * math.pi))
+          ..rotateY(0.05 * math.cos(_breathingAnimation.value * math.pi))
+          ..rotateZ(0.02 * math.sin(_breathingAnimation.value * 3 * math.pi)),
+        child: Transform.scale(
+          scale: scale,
+          child: Container(
+            width: widget.size,
+            height: widget.size,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                _buildAura(avatarState),
+                _buildAvatarBody(avatarState, faceParams),
+                _buildSurfaceEffects(avatarState),
+                if (avatarState.isListening) _buildListeningIndicator(),
+                if (avatarState.isSpeaking) _buildSpeakingIndicator(),
+              ],
+            ),
           ),
         ),
       ),

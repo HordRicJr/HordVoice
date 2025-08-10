@@ -246,8 +246,10 @@ class WakeWordPipelineNotifier extends StateNotifier<WakeWordPipelineState> {
     _calibrationService = VoiceCalibrationService();
     await _calibrationService.initialize();
 
+    // UnifiedHordVoiceService est un singleton déjà initialisé
     _unifiedService = UnifiedHordVoiceService();
-    await _unifiedService.initialize();
+    // Pas besoin de réinitialiser - évite la boucle infinie
+    debugPrint('UnifiedHordVoiceService récupéré depuis le singleton');
   }
 
   Future<void> _startWakeWordDetection() async {

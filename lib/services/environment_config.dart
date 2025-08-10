@@ -24,10 +24,18 @@ class EnvironmentConfig {
       }
 
       _isLoaded = true;
-      debugPrint('Configuration environnement chargée avec succès');
+      if (kDebugMode) {
+        debugPrint('Configuration environnement chargée avec succès');
+      }
     } catch (e) {
-      debugPrint('Erreur chargement configuration: $e');
-      throw Exception('Impossible de charger la configuration: $e');
+      // En cas d'erreur, utiliser les clés hardcodées
+      if (kDebugMode) {
+        debugPrint(
+          'Erreur chargement configuration, utilisation des clés de fallback: $e',
+        );
+      }
+      _loadHardcodedKeys();
+      _isLoaded = true; // Marquer comme chargé même avec fallback
     }
   }
 
@@ -36,9 +44,9 @@ class EnvironmentConfig {
     try {
       final envFile = File('.env');
       if (!await envFile.exists()) {
-        throw Exception(
-          'Fichier .env introuvable. Créez un fichier .env à la racine du projet.',
-        );
+        // Si le fichier .env n'existe pas, utiliser les clés hardcodées
+        _loadHardcodedKeys();
+        return;
       }
 
       final contents = await envFile.readAsString();
@@ -55,10 +63,75 @@ class EnvironmentConfig {
           _config[key] = value;
         }
       }
+
+      // Vérifier si les clés importantes sont chargées, sinon utiliser hardcodées
+      if (!_hasEssentialKeys()) {
+        _loadHardcodedKeys();
+      }
     } catch (e) {
-      debugPrint('Erreur lecture fichier .env: $e');
-      rethrow;
+      // En cas d'erreur, utiliser les clés hardcodées
+      _loadHardcodedKeys();
     }
+  }
+
+  /// Charge les clés hardcodées pour HordVoice
+  void _loadHardcodedKeys() {
+    _config.addAll({
+      'AZURE_SPEECH_KEY':
+          'BWkbBCvtCTaZB6ijvlJsYgFgSCSLxo3ARJp8835NL3fE24vrDcRIJQQJ99BHACYeBjFXJ3w3AAAYACOGFcSl',
+      'AZURE_SPEECH_REGION': 'eastus',
+      'AZURE_SPEECH_ENDPOINT': 'https://eastus.api.cognitive.microsoft.com/',
+      'AZURE_TRANSLATOR_KEY':
+          'C6Uv167mxzRIjxRIVhxk3T0Bl7FmeMWqALl8zSOeAoYpBgchHnq6JQQJ99BHAC5RqLJXJ3w3AAAbACOGHNU2',
+      'AZURE_TRANSLATOR_ENDPOINT':
+          'https://api.cognitive.microsofttranslator.com/',
+      'AZURE_OPENAI_KEY':
+          'ARHFmyisJHz76YW6ZHaRsiyZ8ZgXTFwNGhyLZ8rTiic1t1VE17g8JQQJ99BHACYeBjFXJ3w3AAABACOGKax4',
+      'AZURE_OPENAI_ENDPOINT':
+          'https://assistancevocalintelligent.openai.azure.com/',
+      'AZURE_OPENAI_DEPLOYMENT': 'chat',
+      'AZURE_LANGUAGE_KEY':
+          'DiaAEgjah3gPN5A5eN1HvUIP8a8ZtJrAzcQe24CnCv99ha5vgqzfJQQJ99BHACYeBjFXJ3w3AAAaACOGgiAQ',
+      'AZURE_LANGUAGE_ENDPOINT':
+          'https://hordvoicelang.cognitiveservices.azure.com/',
+      'AZURE_LANGUAGE_REGION': 'eastus',
+      'AZURE_ML_KEY':
+          'https://hordai.vault.azure.net/keys/HordVoice/7844c139da8c42c4886f3883b9d072fa',
+      'AZURE_ML_ENDPOINT': 'https://hordai.vault.azure.net',
+      'AZURE_FORM_RECOGNIZER_KEY':
+          'C9870i6q0a5zGWEAaGXlGtq9CvvahmPSITZBtaSN1oLvAN7fB6VUJQQJ99BHACYeBjFXJ3w3AAALACOGLMLT',
+      'AZURE_FORM_RECOGNIZER_ENDPOINT':
+          'https://reconnaissancedeformulaire.cognitiveservices.azure.com/',
+      'AZURE_FORM_RECOGNIZER_REGION': 'eastus',
+      'AZURE_MAPS_KEY':
+          '4aXO1Ab6kcdOVw6LYsKfTMKUwcW3iGJWeUGuBNwxJGkpEicubgseJQQJ99BHACi5YpzPDDZUAAAgAZMP3FDa',
+      'AZURE_MAPS_CLIENT_ID': 'c9ca8eae-a04c-4150-bcba-b4fc44ebbffc',
+      'AZURE_MAPS_ENDPOINT': 'https://atlas.microsoft.com',
+      'SUPABASE_URL': 'https://glbzkbshvgiceiaqobzu.supabase.co',
+      'SUPABASE_ANON_KEY':
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsYnprYnNodmdpY2VpYXFvYnp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MjkyMjgsImV4cCI6MjA3MDEwNTIyOH0.NWeZnbRP6wYS-TNPzoelGt-6FBwj2b4c4SywW3QRSbE',
+      'OPENWEATHERMAP_API_KEY': 'cdcff205ac95a50040813b0464d87d5a',
+      'OPENWEATHERMAP_ENDPOINT': 'https://api.openweathermap.org/data/2.5',
+      'DEBUG_MODE': 'false',
+      'LOG_LEVEL': 'info',
+    });
+  }
+
+  /// Vérifie si les clés essentielles sont présentes
+  bool _hasEssentialKeys() {
+    final essentialKeys = [
+      'AZURE_SPEECH_KEY',
+      'AZURE_OPENAI_KEY',
+      'SUPABASE_URL',
+      'OPENWEATHERMAP_API_KEY',
+    ];
+
+    return essentialKeys.every(
+      (key) =>
+          _config.containsKey(key) &&
+          _config[key]?.isNotEmpty == true &&
+          !_config[key]!.contains('your_'),
+    );
   }
 
   /// Charge depuis les variables d'environnement système
@@ -66,10 +139,27 @@ class EnvironmentConfig {
     final requiredKeys = [
       'AZURE_SPEECH_KEY',
       'AZURE_SPEECH_REGION',
+      'AZURE_SPEECH_ENDPOINT',
       'AZURE_OPENAI_KEY',
       'AZURE_OPENAI_ENDPOINT',
+      'AZURE_OPENAI_DEPLOYMENT',
+      'AZURE_TRANSLATOR_KEY',
+      'AZURE_TRANSLATOR_ENDPOINT',
+      'AZURE_LANGUAGE_KEY',
+      'AZURE_LANGUAGE_ENDPOINT',
+      'AZURE_LANGUAGE_REGION',
+      'AZURE_ML_KEY',
+      'AZURE_ML_ENDPOINT',
+      'AZURE_FORM_RECOGNIZER_KEY',
+      'AZURE_FORM_RECOGNIZER_ENDPOINT',
+      'AZURE_FORM_RECOGNIZER_REGION',
+      'AZURE_MAPS_KEY',
+      'AZURE_MAPS_CLIENT_ID',
+      'AZURE_MAPS_ENDPOINT',
       'SUPABASE_URL',
       'SUPABASE_ANON_KEY',
+      'OPENWEATHERMAP_API_KEY',
+      'OPENWEATHERMAP_ENDPOINT',
     ];
 
     for (String key in requiredKeys) {
@@ -113,6 +203,7 @@ class EnvironmentConfig {
       'AZURE_OPENAI_ENDPOINT',
       'SUPABASE_URL',
       'SUPABASE_ANON_KEY',
+      'OPENWEATHERMAP_API_KEY',
     ];
 
     return requiredKeys.every((key) => hasValidValue(key));
@@ -123,17 +214,38 @@ class EnvironmentConfig {
   // Azure Speech
   String? get azureSpeechKey => getValue('AZURE_SPEECH_KEY');
   String? get azureSpeechRegion => getValue('AZURE_SPEECH_REGION');
+  String? get azureSpeechEndpoint => getValue('AZURE_SPEECH_ENDPOINT');
 
   // Azure OpenAI
   String? get azureOpenAIKey => getValue('AZURE_OPENAI_KEY');
   String? get azureOpenAIEndpoint => getValue('AZURE_OPENAI_ENDPOINT');
   String get azureOpenAIDeployment =>
-      getValueOrDefault('AZURE_OPENAI_DEPLOYMENT_NAME', 'gpt-4');
+      getValueOrDefault('AZURE_OPENAI_DEPLOYMENT', 'chat');
+
+  // Azure Translator
+  String? get azureTranslatorKey => getValue('AZURE_TRANSLATOR_KEY');
+  String? get azureTranslatorEndpoint => getValue('AZURE_TRANSLATOR_ENDPOINT');
 
   // Azure Language Services
   String? get azureLanguageKey => getValue('AZURE_LANGUAGE_KEY');
   String? get azureLanguageEndpoint => getValue('AZURE_LANGUAGE_ENDPOINT');
   String? get azureLanguageRegion => getValue('AZURE_LANGUAGE_REGION');
+
+  // Azure Machine Learning
+  String? get azureMLKey => getValue('AZURE_ML_KEY');
+  String? get azureMLEndpoint => getValue('AZURE_ML_ENDPOINT');
+
+  // Azure Form Recognizer
+  String? get azureFormRecognizerKey => getValue('AZURE_FORM_RECOGNIZER_KEY');
+  String? get azureFormRecognizerEndpoint =>
+      getValue('AZURE_FORM_RECOGNIZER_ENDPOINT');
+  String? get azureFormRecognizerRegion =>
+      getValue('AZURE_FORM_RECOGNIZER_REGION');
+
+  // Azure Maps
+  String? get azureMapsKey => getValue('AZURE_MAPS_KEY');
+  String? get azureMapsClientId => getValue('AZURE_MAPS_CLIENT_ID');
+  String? get azureMapsEndpoint => getValue('AZURE_MAPS_ENDPOINT');
 
   // Supabase
   String? get supabaseUrl => getValue('SUPABASE_URL');
@@ -142,6 +254,7 @@ class EnvironmentConfig {
   // APIs externes
   String? get googleMapsApiKey => getValue('GOOGLE_MAPS_API_KEY');
   String? get openWeatherMapApiKey => getValue('OPENWEATHERMAP_API_KEY');
+  String? get openWeatherMapEndpoint => getValue('OPENWEATHERMAP_ENDPOINT');
   String? get spotifyClientId => getValue('SPOTIFY_CLIENT_ID');
   String? get spotifyClientSecret => getValue('SPOTIFY_CLIENT_SECRET');
 
@@ -170,12 +283,32 @@ class EnvironmentConfig {
       errors.add('AZURE_OPENAI_ENDPOINT manquante ou invalide');
     }
 
+    // Validation Azure Translator
+    if (!hasValidValue('AZURE_TRANSLATOR_KEY')) {
+      errors.add('AZURE_TRANSLATOR_KEY manquante ou invalide');
+    }
+
+    // Validation Azure Language
+    if (!hasValidValue('AZURE_LANGUAGE_KEY')) {
+      errors.add('AZURE_LANGUAGE_KEY manquante ou invalide');
+    }
+
+    // Validation Azure Maps
+    if (!hasValidValue('AZURE_MAPS_KEY')) {
+      errors.add('AZURE_MAPS_KEY manquante ou invalide');
+    }
+
     // Validation Supabase
     if (!hasValidValue('SUPABASE_URL')) {
       errors.add('SUPABASE_URL manquante ou invalide');
     }
     if (!hasValidValue('SUPABASE_ANON_KEY')) {
       errors.add('SUPABASE_ANON_KEY manquante ou invalide');
+    }
+
+    // Validation APIs externes
+    if (!hasValidValue('OPENWEATHERMAP_API_KEY')) {
+      errors.add('OPENWEATHERMAP_API_KEY manquante ou invalide');
     }
 
     return errors;
@@ -194,6 +327,17 @@ class EnvironmentConfig {
       debugPrint(
         'Azure OpenAI: ${hasValidValue('AZURE_OPENAI_KEY') ? '✓' : '✗'}',
       );
+      debugPrint(
+        'Azure Translator: ${hasValidValue('AZURE_TRANSLATOR_KEY') ? '✓' : '✗'}',
+      );
+      debugPrint(
+        'Azure Language: ${hasValidValue('AZURE_LANGUAGE_KEY') ? '✓' : '✗'}',
+      );
+      debugPrint('Azure ML: ${hasValidValue('AZURE_ML_KEY') ? '✓' : '✗'}');
+      debugPrint(
+        'Azure Form Recognizer: ${hasValidValue('AZURE_FORM_RECOGNIZER_KEY') ? '✓' : '✗'}',
+      );
+      debugPrint('Azure Maps: ${hasValidValue('AZURE_MAPS_KEY') ? '✓' : '✗'}');
       debugPrint('Supabase: ${hasValidValue('SUPABASE_URL') ? '✓' : '✗'}');
       debugPrint(
         'Google Maps: ${hasValidValue('GOOGLE_MAPS_API_KEY') ? '✓' : '✗'}',

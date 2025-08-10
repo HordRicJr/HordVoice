@@ -34,10 +34,8 @@ class VoiceOnboardingService {
       _voiceService = VoiceManagementService();
       _speechService = AzureSpeechService();
 
-      // Initialiser en mode graceful - ne pas échouer si un service n'est pas disponible
-      await _unifiedService.initialize().catchError((e) {
-        debugPrint('Service unifié non disponible (continuer): $e');
-      });
+      // UnifiedHordVoiceService est un singleton déjà initialisé - éviter la boucle infinie
+      debugPrint('Service unifié récupéré depuis le singleton');
 
       await _voiceService.initialize().catchError((e) {
         debugPrint('Service vocal non disponible (continuer): $e');

@@ -67,6 +67,10 @@ class _HomeViewState extends ConsumerState<HomeView>
       });
 
       _pulseController.repeat();
+
+      // CORRECTION: Démarrer automatiquement l'onboarding vocal
+      _startAutomaticOnboarding();
+
       debugPrint('HomeView services initialisés avec succès');
     } catch (e) {
       setState(() {
@@ -162,6 +166,27 @@ class _HomeViewState extends ConsumerState<HomeView>
       setState(() {
         _statusText = "Erreur commande: ${e.toString()}";
       });
+    }
+  }
+
+  /// Démarre automatiquement l'onboarding vocal sans interface utilisateur
+  void _startAutomaticOnboarding() async {
+    try {
+      // Attendre un délai pour que l'utilisateur voie l'interface
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        setState(() {
+          _statusText = "HordVoice vous écoute - Parlez maintenant";
+        });
+
+        // Démarrer l'écoute automatiquement pour l'onboarding
+        _startListening();
+
+        debugPrint('Onboarding automatique démarré');
+      }
+    } catch (e) {
+      debugPrint('Erreur onboarding automatique: $e');
     }
   }
 
