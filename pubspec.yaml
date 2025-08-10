@@ -13,7 +13,7 @@ dependencies:
   # PACKAGES CORE - Versions stables et testées
   flutter_riverpod: 2.6.1
   provider: ^6.1.2
-  permission_handler: 11.3.1
+  permission_handler: ^11.3.1
   google_fonts: 6.3.0
   device_info_plus: ^11.0.0
   logger: ^2.6.1
@@ -66,7 +66,8 @@ dependencies:
   # AUDIO AVANCÉ - Packages compatibles Android 14+
   audioplayers: ^6.1.0
   audio_waveforms: ^1.1.6             # Alternative moderne à record
-  mic_stream: ^0.6.0                  # Stream microphone
+  # mic_stream: ^0.6.0                  # DÉSACTIVÉ temporairement
+  # record: ^5.0.4                    # DÉSACTIVÉ temporairement
   google_sign_in: ^6.2.1
   
   # CAMÉRA & ANALYSE ÉMOTIONNELLE - Nouveaux packages
@@ -77,7 +78,7 @@ dependencies:
 
   # RESPONSIVE DESIGN - Multi-plateforme
   responsive_framework: ^1.5.1
-  health: ^13.1.1
+  health: ^13.1.1  # Package health réactivé avec version compatible
 
   # NEW DEPENDENCIES - Communication et Système (TEMPORAIREMENT SIMPLIFIÉES)
   flutter_app_info: ^3.0.3     # Informations application

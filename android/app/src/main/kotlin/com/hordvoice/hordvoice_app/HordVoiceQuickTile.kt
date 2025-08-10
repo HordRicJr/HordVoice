@@ -87,13 +87,13 @@ class HordVoiceQuickTile : TileService() {
                 tile.state = Tile.STATE_ACTIVE
                 tile.label = "HordVoice Actif"
                 tile.subtitle = "Je vous écoute..."
-                tile.icon = Icon.createWithResource(this, R.drawable.ic_hordvoice_active)
+                tile.icon = Icon.createWithResource(this, android.R.drawable.ic_media_play)
             } else {
                 // État inactif : avatar en veille
                 tile.state = Tile.STATE_INACTIVE
                 tile.label = "HordVoice"
                 tile.subtitle = "Toucher pour activer"
-                tile.icon = Icon.createWithResource(this, R.drawable.ic_hordvoice_inactive)
+                tile.icon = Icon.createWithResource(this, android.R.drawable.ic_media_pause)
             }
             
             tile.updateTile()
@@ -106,7 +106,7 @@ class HordVoiceQuickTile : TileService() {
     
     private fun startHordVoiceActivity() {
         try {
-            val intent = Intent(this, MainActivity::class.java).apply {
+            val intent = Intent(this, io.flutter.embedding.android.FlutterActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 putExtra("from_quick_tile", true)

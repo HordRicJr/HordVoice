@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:mic_stream/mic_stream.dart' as mic;
+// import 'package:record/record.dart'; // TEMPORAIREMENT DÉSACTIVÉ POUR LE BUILD
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/voice_models.dart';
 import '../theme/design_tokens.dart';
@@ -259,13 +259,15 @@ class WakeWordPipelineNotifier extends StateNotifier<WakeWordPipelineState> {
       // Démarrer l'écoute des mots déclencheurs avec Azure
       await _wakeWordService.startListening();
 
-      // Démarrer la visualisation audio
+      // DÉMARRAGE AUDIO DÉSACTIVÉ TEMPORAIREMENT POUR LE BUILD
+      /* 
       _audioStreamSubscription = mic.MicStream.microphone(
         audioSource: mic.AudioSource.DEFAULT,
         sampleRate: sampleRate,
         channelConfig: mic.ChannelConfig.CHANNEL_IN_MONO,
         audioFormat: mic.AudioFormat.ENCODING_PCM_16BIT,
       ).listen(_processAudioData);
+      */
 
       _startAudioLevelUpdates();
 
