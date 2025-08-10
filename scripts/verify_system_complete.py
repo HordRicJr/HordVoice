@@ -39,7 +39,8 @@ class HordVoiceSystemChecker:
         print("=" * 50)
         
         self.total_checks += 1
-        db_schema_file = self.project_root / "docs" / "database_update_v3_voice_ai_complete.sql"
+        # Vérifier le schéma de base de données
+        db_schema_file = self.project_root / "docs" / "database_schema.sql"
         
         if not db_schema_file.exists():
             self.log_error("Fichier de schéma de base de données manquant")

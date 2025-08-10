@@ -20,6 +20,43 @@ class AuthService extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _currentUser != null;
 
+  /// Vérifie si un utilisateur est connecté
+  Future<bool> isUserLoggedIn() async {
+    try {
+      // Vérifier d'abord la session locale
+      final session = _supabase.auth.currentSession;
+      final user = _supabase.auth.currentUser;
+
+      if (session != null && user != null) {
+        // Vérifier si la session est encore valide
+        if (session.expiresAt != null &&
+            DateTime.now().isBefore(
+              DateTime.fromMillisecondsSinceEpoch(session.expiresAt! * 1000),
+            )) {
+          _currentUser = user;
+          return true;
+        }
+      }
+
+      // Essayer de renouveler la session
+      try {
+        await _supabase.auth.refreshSession();
+        final refreshedUser = _supabase.auth.currentUser;
+        if (refreshedUser != null) {
+          _currentUser = refreshedUser;
+          return true;
+        }
+      } catch (e) {
+        debugPrint('Erreur renouvellement session: $e');
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint('Erreur vérification connexion: $e');
+      return false;
+    }
+  }
+
   // Stream pour écouter les changements d'état d'authentification
   StreamSubscription<AuthState>? _authSubscription;
 

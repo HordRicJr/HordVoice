@@ -5,8 +5,6 @@ import '../services/voice_management_service.dart';
 import '../services/navigation_service.dart';
 import '../widgets/animated_avatar.dart';
 import '../widgets/audio_waveform.dart';
-import '../widgets/voice_selector.dart';
-import '../widgets/quick_setting_widget.dart';
 import '../views/permissions_view.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -174,26 +172,14 @@ class _HomeViewState extends ConsumerState<HomeView>
       body: SafeArea(
         child: Column(
           children: [
-            // Header
-            _buildHeader(),
+            // Header simplifié
+            _buildSimpleHeader(),
 
-            // Avatar principal avec status
-            Expanded(flex: 4, child: _buildMainSection()),
+            // Avatar principal centré - Interface Voice-First
+            Expanded(child: _buildVoiceFirstInterface()),
 
-            // Zone de réponse
-            if (_currentResponse.isNotEmpty) _buildResponseSection(),
-
-            // Contrôles principaux
-            _buildMainControls(),
-
-            // Contrôles secondaires
-            _buildSecondaryControls(),
-
-            // Quick Settings et Widget
-            const QuickSettingWidget(),
-
-            // Bouton Permissions
-            _buildPermissionsButton(),
+            // Contrôles vocaux essentiels uniquement
+            if (_isInitialized) _buildVoiceControls(),
 
             const SizedBox(height: 30),
           ],
@@ -202,226 +188,170 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  Widget _buildHeader() {
+  /// Header simplifié pour interface voice-first
+  Widget _buildSimpleHeader() {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'HordVoice',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Assistant Vocal v2.0',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.7),
-                  fontSize: 14,
-                ),
-              ),
-            ],
+          const Text(
+            'HordVoice',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Row(
-            children: [
-              // Indicateur de statut
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: _isInitialized ? Colors.green : Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 15),
-              IconButton(
-                onPressed: _showSettings,
-                icon: const Icon(
-                  Icons.settings,
-                  color: Colors.white70,
-                  size: 28,
-                ),
-              ),
-            ],
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: _isInitialized ? Colors.green : Colors.orange,
+              shape: BoxShape.circle,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMainSection() {
+  /// Interface voice-first centrée sur l'avatar
+  Widget _buildVoiceFirstInterface() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Avatar principal
+        // Avatar principal animé - centre de l'interface
         AnimatedBuilder(
           animation: _pulseController,
           builder: (context, child) {
             return Transform.scale(
-              scale: 1.0 + (_pulseController.value * 0.05),
+              scale: 1.0 + (_pulseController.value * 0.08),
               child: Container(
-                width: 180,
-                height: 180,
+                width: 220,
+                height: 220,
                 child: const AnimatedAvatar(),
               ),
             );
           },
         ),
 
-        const SizedBox(height: 30),
+        const SizedBox(height: 40),
 
-        // Waveform si en écoute
+        // Waveform quand en écoute
         if (_isListening)
           Container(
-            height: 80,
+            height: 60,
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: AudioWaveform(isActive: _isListening),
           ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: 30),
 
-        // Texte de statut
+        // Status vocal centré
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+          margin: const EdgeInsets.symmetric(horizontal: 30),
           decoration: BoxDecoration(
             color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
           ),
           child: Text(
             _statusText,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
           ),
         ),
+
+        // Réponse si disponible
+        if (_currentResponse.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 30),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
+            ),
+            child: Text(
+              _currentResponse,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildResponseSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Réponse:',
-            style: TextStyle(
-              color: Colors.blue,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _currentResponse,
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainControls() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Bouton principal d'écoute
-          GestureDetector(
-            onTap: _toggleListening,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: _isListening ? Colors.red : Colors.green,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: (_isListening ? Colors.red : Colors.green)
-                        .withOpacity(0.4),
-                    blurRadius: 20,
-                    spreadRadius: _isListening ? 8 : 5,
+  /// Contrôles vocaux essentiels
+  Widget _buildVoiceControls() {
+    return Column(
+      children: [
+        // Bouton principal d'écoute - Plus grand et centré
+        GestureDetector(
+          onTap: _toggleListening,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: _isListening ? Colors.red : Colors.green,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: (_isListening ? Colors.red : Colors.green).withOpacity(
+                    0.5,
                   ),
-                ],
-              ),
-              child: Icon(
-                _isListening ? Icons.stop : Icons.mic,
-                color: Colors.white,
-                size: 40,
-              ),
+                  blurRadius: 25,
+                  spreadRadius: _isListening ? 10 : 5,
+                ),
+              ],
+            ),
+            child: Icon(
+              _isListening ? Icons.stop : Icons.mic,
+              color: Colors.white,
+              size: 50,
             ),
           ),
-        ],
-      ),
+        ),
+
+        const SizedBox(height: 30),
+
+        // Contrôles secondaires simplifiés - Vocal uniquement
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildVoiceButton(
+              icon: Icons.record_voice_over,
+              label: 'Voix',
+              onTap: () => _sendTestCommand('changer voix'),
+            ),
+            _buildVoiceButton(
+              icon: Icons.settings,
+              label: 'Config',
+              onTap: () => _sendTestCommand('paramètres'),
+            ),
+            _buildVoiceButton(
+              icon: Icons.security,
+              label: 'Accès',
+              onTap: _showPermissions,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildSecondaryControls() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          // Voice selector
-          _buildControlButton(
-            icon: Icons.record_voice_over,
-            label: 'Voix',
-            color: Colors.blue,
-            onTap: _showVoiceSelector,
-          ),
-
-          // Navigation
-          _buildControlButton(
-            icon: Icons.navigation,
-            label: 'Navigation',
-            color: Colors.purple,
-            onTap: () => _sendTestCommand('navigation'),
-          ),
-
-          // Météo
-          _buildControlButton(
-            icon: Icons.wb_sunny,
-            label: 'Météo',
-            color: Colors.orange,
-            onTap: () => _sendTestCommand('météo'),
-          ),
-
-          // News
-          _buildControlButton(
-            icon: Icons.newspaper,
-            label: 'Actualités',
-            color: Colors.teal,
-            onTap: () => _sendTestCommand('actualités'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlButton({
+  Widget _buildVoiceButton({
     required IconData icon,
     required String label,
-    required Color color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
@@ -430,14 +360,17 @@ class _HomeViewState extends ConsumerState<HomeView>
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 55,
-            height: 55,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
+              color: Colors.white.withOpacity(0.1),
               shape: BoxShape.circle,
-              border: Border.all(color: color, width: 2),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 2,
+              ),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: Colors.white, size: 30),
           ),
           const SizedBox(height: 8),
           Text(
@@ -453,41 +386,10 @@ class _HomeViewState extends ConsumerState<HomeView>
     );
   }
 
-  void _showVoiceSelector() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => const VoiceSelector(),
-    );
-  }
-
-  void _showSettings() {
-    // TODO: Implémenter les paramètres
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Paramètres - À implémenter'),
-        backgroundColor: Colors.blue,
-      ),
-    );
-  }
-
-  /// Bouton pour accéder aux permissions
-  Widget _buildPermissionsButton() {
-    return Card(
-      margin: const EdgeInsets.all(8.0),
-      child: ListTile(
-        leading: Icon(Icons.security, color: Theme.of(context).primaryColor),
-        title: const Text('Gestion des Permissions'),
-        subtitle: const Text('Configurer les accès et autorisations'),
-        trailing: const Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const PermissionsView()),
-          );
-        },
-      ),
-    );
+  void _showPermissions() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const PermissionsView()));
   }
 
   @override

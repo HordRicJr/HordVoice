@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'theme/app_theme.dart';
 import 'services/environment_config.dart';
@@ -101,43 +100,61 @@ class _AppInitializerState extends ConsumerState<AppInitializer> {
 
   Future<void> _initializeApp() async {
     try {
-      // Étape 1: Vérifier l'état de l'onboarding
-      setState(() => _statusMessage = 'Vérification du profil...');
+      // Étape 1: Vérifier l'authentification d'abord
+      setState(() => _statusMessage = 'Vérification de l\'authentification...');
       await Future.delayed(const Duration(milliseconds: 500));
 
-      final onboardingComplete =
-          await PermissionManagerService.isOnboardingComplete();
+      final authService = AuthService();
+      final isLoggedIn = await authService.isUserLoggedIn();
 
-      if (onboardingComplete) {
-        // Étape 2: Initialiser les services pour utilisateur existant
-        setState(() => _statusMessage = 'Chargement des services...');
-        await _initializeServices();
+      if (isLoggedIn) {
+        // Utilisateur connecté - vérifier onboarding
+        setState(() => _statusMessage = 'Vérification du profil...');
 
-        setState(() => _statusMessage = 'Prêt !');
-        await Future.delayed(const Duration(milliseconds: 500));
+        final onboardingComplete =
+            await PermissionManagerService.isOnboardingComplete();
 
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+        if (onboardingComplete) {
+          // Utilisateur existant avec onboarding terminé
+          setState(() => _statusMessage = 'Chargement des services...');
+          await _initializeServices();
+
+          setState(() => _statusMessage = 'Prêt !');
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          if (mounted) {
+            Navigator.of(context).pushReplacementNamed('/home');
+          }
+        } else {
+          // Utilisateur connecté mais onboarding incomplet
+          setState(() => _statusMessage = 'Configuration vocale...');
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          if (mounted) {
+            Navigator.of(context).pushReplacementNamed('/voice_onboarding');
+          }
         }
       } else {
-        // Nouveau utilisateur - onboarding vocal
-        setState(
-          () => _statusMessage = 'Préparation de la configuration vocale...',
-        );
+        // Utilisateur non connecté - rediriger vers login
+        setState(() => _statusMessage = 'Connexion requise...');
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/voice_onboarding');
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const LoginView()),
+          );
         }
       }
     } catch (e) {
       debugPrint('Erreur initialisation: $e');
       setState(() => _statusMessage = 'Erreur - Redémarrage...');
 
-      // En cas d'erreur, aller à l'onboarding vocal par sécurité
+      // En cas d'erreur, aller vers le login par sécurité
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/voice_onboarding');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginView()),
+        );
       }
     }
   }

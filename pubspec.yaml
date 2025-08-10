@@ -66,6 +66,7 @@ dependencies:
   # AUDIO AVANCÉ - Packages compatibles Android 14+
   audioplayers: ^6.1.0
   audio_waveforms: ^1.1.6             # Alternative moderne à record
+  mic_stream: ^0.6.0                  # Stream microphone
   google_sign_in: ^6.2.1
   
   # CAMÉRA & ANALYSE ÉMOTIONNELLE - Nouveaux packages
@@ -148,6 +149,8 @@ flutter:
   # Assets de l'application
   assets:
     - assets/images/
+    - assets/audio/
+    - assets/sounds/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

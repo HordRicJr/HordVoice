@@ -34,21 +34,33 @@ class VoiceOnboardingService {
       _voiceService = VoiceManagementService();
       _speechService = AzureSpeechService();
 
-      await _unifiedService.initialize();
-      await _voiceService.initialize();
-      await _speechService.initialize();
+      // Initialiser en mode graceful - ne pas échouer si un service n'est pas disponible
+      await _unifiedService.initialize().catchError((e) {
+        debugPrint('Service unifié non disponible (continuer): $e');
+      });
+
+      await _voiceService.initialize().catchError((e) {
+        debugPrint('Service vocal non disponible (continuer): $e');
+      });
+
+      await _speechService.initialize().catchError((e) {
+        debugPrint('Service speech non disponible (continuer): $e');
+      });
 
       _isInitialized = true;
-      debugPrint('VoiceOnboardingService initialisé');
+      debugPrint('VoiceOnboardingService initialisé (mode graceful)');
     } catch (e) {
       debugPrint('Erreur initialisation VoiceOnboardingService: $e');
-      throw Exception('Impossible d\'initialiser l\'onboarding vocal');
+      // Ne pas lancer d'exception - continuer en mode dégradé
+      _isInitialized = true;
     }
   }
 
   /// Étape 5A: Démarrage auto - Greeting immédiat
   Future<void> startOnboarding() async {
-    if (!_isInitialized) await initialize();
+    if (!_isInitialized) {
+      await initialize();
+    }
 
     try {
       final isFirstRun = await _isFirstRun();
@@ -60,11 +72,19 @@ class VoiceOnboardingService {
       }
     } catch (e) {
       debugPrint('Erreur démarrage onboarding: $e');
-      await _unifiedService.speakText(
-        'Problème technique au démarrage. Réessayons.',
-      );
-      await Future.delayed(Duration(seconds: 2));
-      await startOnboarding();
+      // Fallback graceful
+      try {
+        await _unifiedService
+            .speakText('Bienvenue dans HordVoice. Configuration en cours.')
+            .catchError((e) {
+              debugPrint('TTS non disponible: $e');
+            });
+      } catch (fallbackError) {
+        debugPrint('Fallback TTS échoué: $fallbackError');
+      }
+
+      // Marquer comme terminé pour éviter les boucles d'erreur
+      await _markOnboardingCompleted();
     }
   }
 

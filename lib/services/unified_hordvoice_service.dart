@@ -24,6 +24,8 @@ import 'health_monitoring_service.dart';
 import 'phone_monitoring_service.dart';
 import 'battery_monitoring_service.dart';
 import 'voice_management_service.dart'; // Étape 11: Gestion des voix
+import 'quick_settings_service.dart'; // Contrôles vocaux système
+import 'transition_animation_service.dart'; // Transitions avatar
 
 final unifiedHordVoiceServiceProvider = Provider<UnifiedHordVoiceService>((
   ref,
@@ -45,8 +47,10 @@ class UnifiedHordVoiceService {
   UserProfile? _currentUser;
   Timer? _monitoringTimer;
   Timer? _batteryTimer;
+  Timer? _wakeWordTimer;
   bool _isInitialized = false;
   bool _isListening = false;
+  bool _wakeWordActive = false;
   String _currentMood = 'neutral';
 
   late AzureOpenAIService _aiService;
@@ -62,6 +66,8 @@ class UnifiedHordVoiceService {
   late BatteryMonitoringService _batteryMonitoringService;
   late VoiceManagementService
   _voiceManagementService; // Étape 11: Gestion des voix
+  late QuickSettingsService _quickSettingsService; // Contrôles vocaux système
+  late TransitionAnimationService _transitionService; // Transitions avatar
 
   final StreamController<String> _aiResponseController =
       StreamController<String>.broadcast();
@@ -112,6 +118,7 @@ class UnifiedHordVoiceService {
       _isInitialized = true;
 
       await _startSystemMonitoring();
+      await _startWakeWordDetection(); // Démarrer la détection automatique
 
       debugPrint('UnifiedHordVoiceService initialisé avec succès');
     } catch (e) {
@@ -133,6 +140,8 @@ class UnifiedHordVoiceService {
     _phoneMonitoringService = PhoneMonitoringService();
     _batteryMonitoringService = BatteryMonitoringService();
     _voiceManagementService = VoiceManagementService(); // Étape 11
+    _quickSettingsService = QuickSettingsService(); // Contrôles vocaux
+    _transitionService = TransitionAnimationService(); // Transitions avatar
 
     await _aiService.initialize();
     await _azureSpeechService.initialize();
@@ -146,6 +155,8 @@ class UnifiedHordVoiceService {
     await _phoneMonitoringService.initialize();
     await _batteryMonitoringService.initialize();
     await _voiceManagementService.initialize(); // Étape 11
+    await _quickSettingsService.initialize(); // Contrôles vocaux
+    await _transitionService.initialize(); // Transitions avatar
   }
 
   Future<void> _initializeNotifications() async {
@@ -906,7 +917,20 @@ class UnifiedHordVoiceService {
   Future<void> _executeCommand(String command) async {
     final lowerCommand = command.toLowerCase();
 
-    if (lowerCommand.contains('météo')) {
+    // Contrôles vocaux des paramètres système
+    if (lowerCommand.contains('luminosité') || lowerCommand.contains('écran')) {
+      await _quickSettingsService.handleBrightnessVoiceCommand(command);
+    } else if (lowerCommand.contains('volume') ||
+        lowerCommand.contains('son')) {
+      await _quickSettingsService.handleVolumeVoiceCommand(command);
+    } else if (lowerCommand.contains('wifi') ||
+        lowerCommand.contains('bluetooth')) {
+      await _quickSettingsService.handleConnectivityVoiceCommand(command);
+    } else if (lowerCommand.contains('mode avion') ||
+        lowerCommand.contains('données mobiles') ||
+        lowerCommand.contains('rotation')) {
+      await _quickSettingsService.handlePhoneSettingsVoiceCommand(command);
+    } else if (lowerCommand.contains('météo')) {
       await _handleWeatherRequest(command);
     } else if (lowerCommand.contains('musique') ||
         lowerCommand.contains('jouer')) {
@@ -984,11 +1008,89 @@ class UnifiedHordVoiceService {
     }
   }
 
+  /// Démarre la détection automatique de wake word en arrière-plan
+  Future<void> _startWakeWordDetection() async {
+    if (_wakeWordActive) return;
+
+    try {
+      _wakeWordActive = true;
+      debugPrint('Démarrage de la détection automatique de wake word');
+
+      // Démarrer l'écoute en continu pour le wake word
+      _wakeWordTimer = Timer.periodic(const Duration(seconds: 5), (
+        timer,
+      ) async {
+        if (!_isListening && _wakeWordActive) {
+          await _listenForWakeWord();
+        }
+      });
+
+      // Écouter immédiatement
+      await _listenForWakeWord();
+    } catch (e) {
+      debugPrint('Erreur démarrage wake word detection: $e');
+    }
+  }
+
+  /// Écoute pour le wake word
+  Future<void> _listenForWakeWord() async {
+    try {
+      // Démarrer une reconnaissance courte pour détecter "Hey Ric" ou variantes
+      final result = await _azureSpeechService.startSimpleRecognition();
+
+      if (result != null && _containsWakeWord(result)) {
+        debugPrint('Wake word détecté: $result');
+        _wakeWordController.add(true);
+
+        await speakText('Oui, je vous écoute');
+
+        // Démarrer l'écoute complète pour la commande
+        await startListening();
+      }
+    } catch (e) {
+      debugPrint('Erreur écoute wake word: $e');
+    }
+  }
+
+  /// Vérifie si le texte contient un wake word
+  bool _containsWakeWord(String text) {
+    final lowerText = text.toLowerCase();
+    final wakeWords = [
+      'hey ric',
+      'salut ric',
+      'ric',
+      'rick',
+      'hey rick',
+      'salut rick',
+      'bonjour ric',
+      'bonjour rick',
+    ];
+
+    return wakeWords.any((wake) => lowerText.contains(wake));
+  }
+
+  /// Arrête la détection de wake word
+  Future<void> stopWakeWordDetection() async {
+    _wakeWordActive = false;
+    _wakeWordTimer?.cancel();
+    _wakeWordTimer = null;
+    debugPrint('Détection wake word arrêtée');
+  }
+
+  // Accès au service de transition pour les animations
+  TransitionAnimationService get transitionService => _transitionService;
+
   void dispose() {
     _monitoringTimer?.cancel();
     _batteryTimer?.cancel();
+    _wakeWordTimer?.cancel();
     _aiResponseController.close();
     _moodController.close();
     _systemStatusController.close();
+    _audioLevelController.close();
+    _transcriptionController.close();
+    _emotionController.close();
+    _wakeWordController.close();
+    _isSpeakingController.close();
   }
 }

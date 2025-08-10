@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/voice_onboarding_service.dart';
+import '../services/transition_animation_service.dart';
 import '../widgets/animated_avatar.dart';
+import '../views/home_view.dart';
 
 /// Vue d'onboarding vocal avec support visuel
 class VoiceOnboardingView extends StatefulWidget {
@@ -17,6 +19,7 @@ class _VoiceOnboardingViewState extends State<VoiceOnboardingView>
   late VoiceOnboardingService _onboardingService;
   late AnimationController _progressController;
   late AnimationController _pulseController;
+  late TransitionAnimationService _transitionService;
 
   String _currentStep = 'initializing';
   String _statusText = 'Initialisation...';
@@ -45,7 +48,10 @@ class _VoiceOnboardingViewState extends State<VoiceOnboardingView>
   Future<void> _initializeOnboarding() async {
     try {
       _onboardingService = VoiceOnboardingService();
+      _transitionService = TransitionAnimationService();
+
       await _onboardingService.initialize();
+      await _transitionService.initialize();
 
       setState(() {
         _statusText = 'Prêt pour l\'onboarding vocal';
@@ -152,10 +158,17 @@ class _VoiceOnboardingViewState extends State<VoiceOnboardingView>
 
     _progressController.animateTo(1.0);
 
-    // Retourner à l'écran principal après 3 secondes
-    Future.delayed(const Duration(seconds: 3), () {
+    // Démarrer la transition animée vers home après 2 secondes
+    Future.delayed(const Duration(seconds: 2), () async {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Jouer le son de transition
+        await _transitionService.playTransitionSound();
+
+        // Exécuter la transition animée
+        await _transitionService.executeOnboardingToHomeTransition(
+          context,
+          homeWidget: const HomeView(),
+        );
       }
     });
   }
@@ -403,7 +416,7 @@ class _VoiceOnboardingViewState extends State<VoiceOnboardingView>
           icon: Icons.skip_next,
           label: 'Passer',
           onTap: () {
-            Navigator.of(context).pushReplacementNamed('/home');
+            _navigateToHomeWithTransition();
           },
         ),
 
@@ -448,6 +461,27 @@ class _VoiceOnboardingViewState extends State<VoiceOnboardingView>
         ),
       ),
     );
+  }
+
+  /// Navigation avec transition élaborée vers l'écran d'accueil
+  Future<void> _navigateToHomeWithTransition() async {
+    try {
+      // Utiliser le service de transition pour l'animation élaborée
+      final transitionService = TransitionAnimationService();
+
+      // Exécuter la transition complète avec effets 3D
+      await transitionService.executeOnboardingToHomeTransition(
+        context,
+        homeWidget: const HomeView(),
+        duration: const Duration(
+          milliseconds: 3000,
+        ), // Transition de 3 secondes
+      );
+    } catch (e) {
+      debugPrint('Erreur lors de la transition: $e');
+      // Navigation de secours en cas d'erreur
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
   }
 
   void _showHelpDialog() {

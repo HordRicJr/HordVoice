@@ -127,14 +127,14 @@ function Update-Database {
     Write-Host "`n🗄️ MISE À JOUR BASE DE DONNÉES" -ForegroundColor Magenta
     Write-Host "=" * 50
     
-    $sqlFile = "$ProjectPath\docs\database_update_v3_voice_ai_complete.sql"
+    $sqlFile = "$ProjectPath\docs\database_schema.sql"
     
     if (Test-Path $sqlFile) {
         Write-Success "Script SQL trouvé: $sqlFile"
         Write-Info "Exécutez ce script sur votre base de données Supabase:"
         Write-Info "1. Connectez-vous à votre tableau de bord Supabase"
         Write-Info "2. Allez dans SQL Editor"
-        Write-Info "3. Collez le contenu du fichier database_update_v3_voice_ai_complete.sql"
+        Write-Info "3. Collez le contenu du fichier database_schema.sql"
         Write-Info "4. Exécutez le script"
         Write-Warning "IMPORTANT: Sauvegardez votre base de données avant d'exécuter le script!"
     } else {
@@ -353,7 +353,7 @@ function Generate-FinalReport {
 ## 🚀 Prochaines Étapes
 
 1. **Déploiement Base de Données**
-   - Exécuter `database_update_v3_voice_ai_complete.sql` sur Supabase
+   - Exécuter `database_schema.sql` sur Supabase
    - Vérifier l'intégrité des données
 
 2. **Test des Permissions**
