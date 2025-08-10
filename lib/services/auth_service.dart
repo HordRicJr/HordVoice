@@ -7,6 +7,7 @@ import '../models/user_profile.dart';
 /// Gère l'authentification, la création de profils et la synchronisation
 class AuthService extends ChangeNotifier {
   SupabaseClient? _supabase;
+  bool _isSupabaseInitialized = false;
 
   User? _currentUser;
   UserProfile? _currentProfile;
@@ -20,18 +21,41 @@ class AuthService extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _currentUser != null;
 
-  /// Initialise le client Supabase
-  SupabaseClient get client {
-    _supabase ??= Supabase.instance.client;
-    return _supabase!;
+  /// Initialise et récupère le client Supabase de manière sécurisée
+  SupabaseClient? get client {
+    try {
+      if (!_isSupabaseInitialized) {
+        // Vérifier si Supabase est disponible
+        try {
+          _supabase = Supabase.instance.client;
+          _isSupabaseInitialized = true;
+        } catch (e) {
+          debugPrint('Supabase instance non disponible: $e');
+          return null;
+        }
+      }
+      return _supabase;
+    } catch (e) {
+      debugPrint('Erreur récupération client Supabase: $e');
+      return null;
+    }
   }
+
+  /// Vérifie si Supabase est disponible
+  bool get isSupabaseAvailable => client != null;
 
   /// Vérifie si un utilisateur est connecté
   Future<bool> isUserLoggedIn() async {
     try {
+      // Vérifier si Supabase est disponible
+      if (!isSupabaseAvailable) {
+        debugPrint('Supabase non disponible - mode déconnecté');
+        return false;
+      }
+
       // Vérifier d'abord la session locale
-      final session = client.auth.currentSession;
-      final user = client.auth.currentUser;
+      final session = client!.auth.currentSession;
+      final user = client!.auth.currentUser;
 
       if (session != null && user != null) {
         // Vérifier si la session est encore valide
@@ -46,14 +70,14 @@ class AuthService extends ChangeNotifier {
 
       // Essayer de renouveler la session
       try {
-        await client.auth.refreshSession();
-        final refreshedUser = client.auth.currentUser;
+        await client!.auth.refreshSession();
+        final refreshedUser = client!.auth.currentUser;
         if (refreshedUser != null) {
           _currentUser = refreshedUser;
           return true;
         }
-      } catch (e) {
-        debugPrint('Erreur renouvellement session: $e');
+      } catch (refreshError) {
+        debugPrint('Erreur renouvellement session: $refreshError');
       }
 
       return false;
@@ -72,24 +96,32 @@ class AuthService extends ChangeNotifier {
 
   /// Initialise le service d'authentification
   void _initializeAuth() {
-    _currentUser = client.auth.currentUser;
+    try {
+      if (isSupabaseAvailable) {
+        _currentUser = client!.auth.currentUser;
 
-    // Écouter les changements d'authentification
-    _authSubscription = client.auth.onAuthStateChange.listen((data) {
-      _currentUser = data.session?.user;
+        // Écouter les changements d'authentification
+        _authSubscription = client!.auth.onAuthStateChange.listen((data) {
+          _currentUser = data.session?.user;
 
-      if (_currentUser != null) {
-        _loadUserProfile();
+          if (_currentUser != null) {
+            _loadUserProfile();
+          } else {
+            _currentProfile = null;
+          }
+
+          notifyListeners();
+        });
+
+        // Charger le profil si déjà connecté
+        if (_currentUser != null) {
+          _loadUserProfile();
+        }
       } else {
-        _currentProfile = null;
+        debugPrint('Supabase non disponible - mode déconnecté');
       }
-
-      notifyListeners();
-    });
-
-    // Charger le profil si déjà connecté
-    if (_currentUser != null) {
-      _loadUserProfile();
+    } catch (e) {
+      debugPrint('Erreur initialisation auth: $e');
     }
   }
 
@@ -98,183 +130,171 @@ class AuthService extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    try {
-      _setLoading(true);
-      _clearError();
+    if (!isSupabaseAvailable) {
+      _errorMessage = 'Service d\'authentification non disponible';
+      notifyListeners();
+      return false;
+    }
 
-      final AuthResponse response = await client.auth.signInWithPassword(
-        email: email.trim(),
+    _setLoading(true);
+
+    try {
+      final AuthResponse response = await client!.auth.signInWithPassword(
+        email: email,
         password: password,
       );
 
       if (response.user != null) {
         _currentUser = response.user;
+        _errorMessage = null;
         await _loadUserProfile();
+        _setLoading(false);
         return true;
+      } else {
+        _errorMessage = 'Échec de la connexion';
+        _setLoading(false);
+        return false;
       }
-
-      _setError('Erreur de connexion inattendue');
-      return false;
-    } on AuthException catch (e) {
-      _setError(_getLocalizedAuthError(e.message));
-      return false;
-    } catch (e) {
-      _setError('Erreur de connexion: ${e.toString()}');
-      return false;
-    } finally {
+    } catch (error) {
+      _errorMessage = _getErrorMessage(error);
       _setLoading(false);
+      return false;
     }
   }
 
-  /// Inscription avec email, mot de passe et données de profil
+  /// Inscription avec email et mot de passe
   Future<bool> signUpWithEmail({
     required String email,
     required String password,
     required String fullName,
-    String? phoneNumber,
-    String? preferredLanguage = 'fr',
-    String? culturalBackground = 'africain',
   }) async {
-    try {
-      _setLoading(true);
-      _clearError();
+    if (!isSupabaseAvailable) {
+      _errorMessage = 'Service d\'authentification non disponible';
+      notifyListeners();
+      return false;
+    }
 
-      // 1. Créer le compte utilisateur
-      final AuthResponse response = await client.auth.signUp(
-        email: email.trim(),
+    _setLoading(true);
+
+    try {
+      final AuthResponse response = await client!.auth.signUp(
+        email: email,
         password: password,
-        data: {'full_name': fullName, 'phone_number': phoneNumber},
+        data: {'full_name': fullName, 'email': email},
       );
 
       if (response.user != null) {
-        // 2. Créer le profil utilisateur dans la base de données
+        _currentUser = response.user;
+        _errorMessage = null;
+
+        // Créer le profil utilisateur
         await _createUserProfile(
           userId: response.user!.id,
-          email: email.trim(),
+          email: email,
           fullName: fullName,
-          phoneNumber: phoneNumber,
-          preferredLanguage: preferredLanguage!,
-          culturalBackground: culturalBackground!,
         );
 
-        _currentUser = response.user;
-        await _loadUserProfile();
-
+        _setLoading(false);
         return true;
+      } else {
+        _errorMessage = 'Échec de l\'inscription';
+        _setLoading(false);
+        return false;
       }
-
-      _setError('Erreur lors de la création du compte');
-      return false;
-    } on AuthException catch (e) {
-      _setError(_getLocalizedAuthError(e.message));
-      return false;
-    } catch (e) {
-      _setError('Erreur d\'inscription: ${e.toString()}');
-      return false;
-    } finally {
+    } catch (error) {
+      _errorMessage = _getErrorMessage(error);
       _setLoading(false);
+      return false;
     }
   }
 
   /// Déconnexion
   Future<void> signOut() async {
-    try {
-      _setLoading(true);
-      await client.auth.signOut();
+    if (!isSupabaseAvailable) {
       _currentUser = null;
       _currentProfile = null;
-    } catch (e) {
-      _setError('Erreur lors de la déconnexion: ${e.toString()}');
-    } finally {
-      _setLoading(false);
+      notifyListeners();
+      return;
+    }
+
+    try {
+      await client!.auth.signOut();
+      _currentUser = null;
+      _currentProfile = null;
+      _errorMessage = null;
+      notifyListeners();
+    } catch (error) {
+      _errorMessage = _getErrorMessage(error);
+      notifyListeners();
     }
   }
 
   /// Réinitialisation du mot de passe
   Future<bool> resetPassword(String email) async {
+    if (!isSupabaseAvailable) {
+      _errorMessage = 'Service d\'authentification non disponible';
+      notifyListeners();
+      return false;
+    }
+
     try {
-      _setLoading(true);
-      _clearError();
-
-      await client.auth.resetPasswordForEmail(
-        email.trim(),
-        redirectTo: 'https://hordvoice.com/reset-password',
+      await client!.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'hordvoice://reset-password',
       );
-
       return true;
-    } on AuthException catch (e) {
-      _setError(_getLocalizedAuthError(e.message));
+    } catch (error) {
+      _errorMessage = _getErrorMessage(error);
+      notifyListeners();
       return false;
-    } catch (e) {
-      _setError('Erreur: ${e.toString()}');
-      return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
-  /// Mise à jour du profil utilisateur
+  /// Met à jour le profil utilisateur
   Future<bool> updateProfile({
     String? fullName,
-    String? phoneNumber,
-    String? preferredLanguage,
-    String? culturalBackground,
-    String? voicePersonality,
+    String? avatarUrl,
     Map<String, dynamic>? preferences,
   }) async {
-    if (_currentUser == null) return false;
+    if (!isSupabaseAvailable || _currentUser == null) return false;
 
     try {
-      _setLoading(true);
-      _clearError();
-
-      final Map<String, dynamic> updates = {};
-
-      if (fullName != null) updates['full_name'] = fullName;
-      if (phoneNumber != null) updates['phone_number'] = phoneNumber;
-      if (preferredLanguage != null)
-        updates['preferred_language'] = preferredLanguage;
-      if (culturalBackground != null)
-        updates['cultural_background'] = culturalBackground;
-      if (voicePersonality != null)
-        updates['voice_personality'] = voicePersonality;
-      if (preferences != null) updates['user_preferences'] = preferences;
-
-      updates['updated_at'] = DateTime.now().toIso8601String();
-
-      await client
+      await client!
           .from('user_profiles')
-          .update(updates)
+          .update({
+            if (fullName != null) 'full_name': fullName,
+            if (avatarUrl != null) 'avatar_url': avatarUrl,
+            if (preferences != null) 'preferences': preferences,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
           .eq('id', _currentUser!.id);
 
       await _loadUserProfile();
       return true;
-    } catch (e) {
-      _setError('Erreur de mise à jour: ${e.toString()}');
+    } catch (error) {
+      _errorMessage = _getErrorMessage(error);
+      notifyListeners();
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
-  /// Charge le profil utilisateur depuis la base de données
+  /// Charge le profil de l'utilisateur connecté
   Future<void> _loadUserProfile() async {
-    if (_currentUser == null) return;
+    if (!isSupabaseAvailable || _currentUser == null) return;
 
     try {
-      final response = await client
+      final response = await client!
           .from('user_profiles')
           .select()
           .eq('id', _currentUser!.id)
-          .maybeSingle();
+          .single();
 
-      if (response != null) {
-        _currentProfile = UserProfile.fromJson(response);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Erreur lors du chargement du profil: $e');
-      }
+      _currentProfile = UserProfile.fromJson(response);
+      notifyListeners();
+    } catch (error) {
+      debugPrint('Erreur chargement profil: $error');
+      // Ne pas affecter _errorMessage pour éviter d'afficher une erreur
+      // si le profil n'existe pas encore
     }
   }
 
@@ -283,102 +303,70 @@ class AuthService extends ChangeNotifier {
     required String userId,
     required String email,
     required String fullName,
-    String? phoneNumber,
-    required String preferredLanguage,
-    required String culturalBackground,
   }) async {
-    final profileData = {
-      'id': userId,
-      'email': email,
-      'full_name': fullName,
-      'phone_number': phoneNumber,
-      'preferred_language': preferredLanguage,
-      'cultural_background': culturalBackground,
-      'voice_personality': 'ami', // Personnalité par défaut
-      'ai_strictness_level': 3,
-      'allow_reproches': true,
-      'preferred_motivation_style': 'encourageant',
-      'wellness_goals_active': true,
-      'daily_check_in_enabled': true,
-      'stress_monitoring_enabled': true,
-      'relationship_mode': 'ami',
-      'emotional_intelligence_level': 5.0,
-      'adaptive_personality': true,
-      'user_preferences': {
-        'voice_speed': 1.0,
-        'voice_pitch': 1.0,
-        'notifications_enabled': true,
-        'african_expressions': true,
-        'cultural_content': true,
-      },
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
-    };
+    if (!isSupabaseAvailable) return;
 
-    await client.from('user_profiles').insert(profileData);
-  }
+    try {
+      final profileData = {
+        'id': userId,
+        'email': email,
+        'full_name': fullName,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'preferences': <String, dynamic>{},
+      };
 
-  /// Traduit les messages d'erreur d'authentification
-  String _getLocalizedAuthError(String error) {
-    switch (error.toLowerCase()) {
-      case 'invalid login credentials':
-        return 'Email ou mot de passe incorrect';
-      case 'email already registered':
-        return 'Cette adresse email est déjà utilisée';
-      case 'email not confirmed':
-        return 'Veuillez confirmer votre email avant de vous connecter';
-      case 'invalid email':
-        return 'Adresse email invalide';
-      case 'password is too weak':
-        return 'Le mot de passe est trop faible (minimum 6 caractères)';
-      case 'signup disabled':
-        return 'Les inscriptions sont temporairement désactivées';
-      case 'email rate limit exceeded':
-        return 'Trop de tentatives. Réessayez dans quelques minutes';
-      default:
-        return error;
+      await client!.from('user_profiles').insert(profileData);
+      await _loadUserProfile();
+    } catch (error) {
+      debugPrint('Erreur création profil: $error');
     }
   }
 
+  /// Définit l'état de chargement
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  void _setError(String error) {
-    _errorMessage = error;
-    notifyListeners();
-  }
-
-  void _clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  /// Validation de l'email
-  static bool isValidEmail(String email) {
-    return RegExp(
-      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-    ).hasMatch(email);
-  }
-
-  /// Validation du mot de passe
-  static String? validatePassword(String password) {
-    if (password.length < 6) {
-      return 'Le mot de passe doit contenir au moins 6 caractères';
+  /// Convertit une erreur en message lisible
+  String _getErrorMessage(dynamic error) {
+    if (error is AuthException) {
+      switch (error.message) {
+        case 'Invalid login credentials':
+          return 'Email ou mot de passe incorrect';
+        case 'Email not confirmed':
+          return 'Email non confirmé. Vérifiez votre boîte mail.';
+        case 'User already registered':
+          return 'Un compte existe déjà avec cet email';
+        case 'Password should be at least 6 characters':
+          return 'Le mot de passe doit contenir au moins 6 caractères';
+        default:
+          return error.message;
+      }
     }
-    if (!password.contains(RegExp(r'[A-Z]'))) {
-      return 'Le mot de passe doit contenir au moins une majuscule';
-    }
-    if (!password.contains(RegExp(r'[0-9]'))) {
-      return 'Le mot de passe doit contenir au moins un chiffre';
-    }
-    return null;
+    return 'Une erreur est survenue: ${error.toString()}';
   }
 
+  /// Nettoie les ressources
   @override
   void dispose() {
     _authSubscription?.cancel();
     super.dispose();
+  }
+
+  // Méthodes de validation
+  bool isValidEmail(String email) {
+    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
+  }
+
+  String? validatePassword(String password) {
+    if (password.isEmpty) {
+      return 'Le mot de passe est requis';
+    }
+    if (password.length < 6) {
+      return 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    return null;
   }
 }

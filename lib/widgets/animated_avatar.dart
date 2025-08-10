@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/avatar_state_service.dart';
+import '../services/emotional_avatar_service.dart';
 import '../theme/design_tokens.dart'; // Pour EmotionType
 
 class AnimatedAvatar extends ConsumerStatefulWidget {
@@ -116,6 +118,7 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
   @override
   Widget build(BuildContext context) {
     final avatarState = ref.watch(avatarStateProvider);
+    final emotionalState = ref.watch(emotionalAvatarServiceProvider);
 
     return GestureDetector(
       onTap: widget.enableGestures ? _handleTap : null,
@@ -131,31 +134,42 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
           _tickleAnimation,
         ]),
         builder: (context, child) {
-          return _buildAvatar(avatarState);
+          return _buildAvatar(avatarState, emotionalState);
         },
       ),
     );
   }
 
-  Widget _buildAvatar(AvatarState avatarState) {
+  Widget _buildAvatar(
+    AvatarState avatarState,
+    EmotionalAvatarState emotionalState,
+  ) {
     final faceParams = avatarState.faceParameters.isNotEmpty
         ? avatarState.faceParameters
         : ref.read(avatarStateProvider.notifier).getFaceParameters();
 
+    // Intégrer la vitesse d'animation émotionnelle
     double scale = _breathingAnimation.value;
+    final emotionalSpeed = emotionalState.animationSpeed;
 
     if (avatarState.isSpeaking) {
-      scale *= _speakingAnimation.value;
+      scale *= _speakingAnimation.value * emotionalSpeed;
     }
 
     if (avatarState.animationState == AvatarAnimationState.reacting) {
-      scale *= _reactionAnimation.value;
+      scale *= _reactionAnimation.value * emotionalSpeed;
     }
 
     double tickleOffset = 0.0;
     if (avatarState.animationState == AvatarAnimationState.tickled) {
-      tickleOffset = _tickleAnimation.value;
+      tickleOffset = _tickleAnimation.value * emotionalState.emotionIntensity;
     }
+
+    // Modifier les transformations selon l'état émotionnel
+    final emotionalIntensity = emotionalState.emotionIntensity;
+    final breathingMultiplier =
+        _getBreathingMultiplier(emotionalState.currentEmotion) *
+        emotionalIntensity;
 
     return Transform.translate(
       offset: Offset(tickleOffset, 0),
@@ -163,8 +177,16 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
         alignment: Alignment.center,
         transform: Matrix4.identity()
           ..setEntry(3, 2, 0.001) // Perspective
-          ..rotateX(0.1 * math.sin(_breathingAnimation.value * 2 * math.pi))
-          ..rotateY(0.05 * math.cos(_breathingAnimation.value * math.pi))
+          ..rotateX(
+            0.1 *
+                math.sin(_breathingAnimation.value * 2 * math.pi) *
+                breathingMultiplier,
+          )
+          ..rotateY(
+            0.05 *
+                math.cos(_breathingAnimation.value * math.pi) *
+                breathingMultiplier,
+          )
           ..rotateZ(0.02 * math.sin(_breathingAnimation.value * 3 * math.pi)),
         child: Transform.scale(
           scale: scale,
@@ -459,6 +481,17 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
       _tapCount++;
       if (_tapCount >= 2) {
         _executeGesture('doubleTap', GestureType.doubleTap);
+
+        // Intégration service émotionnel - Double tap
+        final emotionalService = ref.read(
+          emotionalAvatarServiceProvider.notifier,
+        );
+        emotionalService.onTouchStimulus(
+          touchPosition: Offset(widget.size / 2, widget.size / 2),
+          touchType: TouchType.doubleTap,
+          pressure: 0.8,
+        );
+
         _tapCount = 0;
         _lastTapTime = null;
         return;
@@ -472,6 +505,17 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_tapCount == 1 && _lastTapTime == now) {
         _executeGesture('tap', GestureType.tap);
+
+        // Intégration service émotionnel - Single tap
+        final emotionalService = ref.read(
+          emotionalAvatarServiceProvider.notifier,
+        );
+        emotionalService.onTouchStimulus(
+          touchPosition: Offset(widget.size / 2, widget.size / 2),
+          touchType: TouchType.tap,
+          pressure: 0.6,
+        );
+
         _tapCount = 0;
         _lastTapTime = null;
       }
@@ -484,6 +528,14 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
 
     _executeGesture('longPress', GestureType.longPress);
     _triggerTickleAnimation();
+
+    // Intégration service émotionnel - Long press
+    final emotionalService = ref.read(emotionalAvatarServiceProvider.notifier);
+    emotionalService.onTouchStimulus(
+      touchPosition: Offset(widget.size / 2, widget.size / 2),
+      touchType: TouchType.longPress,
+      pressure: 0.9,
+    );
   }
 
   /// Étape 10: Vérifier si le geste peut être exécuté
@@ -551,6 +603,34 @@ class _AnimatedAvatarState extends ConsumerState<AnimatedAvatar>
       _tickleController.stop();
       _tickleController.reset();
     });
+  }
+
+  /// Calcule le multiplicateur de respiration selon l'émotion
+  double _getBreathingMultiplier(EmotionalState emotion) {
+    switch (emotion) {
+      case EmotionalState.excited:
+        return 2.0; // Respiration rapide et intense
+      case EmotionalState.surprised:
+        return 1.8; // Respiration accélérée
+      case EmotionalState.happy:
+        return 1.3; // Respiration joyeuse
+      case EmotionalState.alert:
+        return 1.5; // Respiration attentive
+      case EmotionalState.thinking:
+        return 0.8; // Respiration plus lente, concentration
+      case EmotionalState.sleepy:
+        return 0.4; // Respiration très lente
+      case EmotionalState.sad:
+        return 0.6; // Respiration ralentie
+      case EmotionalState.listening:
+        return 1.1; // Respiration attentive mais calme
+      case EmotionalState.speaking:
+        return 1.2; // Respiration légèrement accélérée
+      case EmotionalState.confused:
+        return 0.9; // Respiration légèrement perturbée
+      case EmotionalState.neutral:
+        return 1.0; // Respiration normale
+    }
   }
 
   @override

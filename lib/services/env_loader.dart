@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 // Utilisez EnvConfig avec .env à la place pour la sécurité
 @Deprecated('Use EnvConfig with .env file for security')
 class EnvLoader {
-  // 🔴 CLÉS SUPPRIMÉES POUR SÉCURITÉ
+  // CLES SUPPRIMEES POUR SECURITE
   // Les clés ont été migrées vers .env et EnvConfig
   static const String _azureSpeechKey = '';
   static const String _azureSpeechRegion = 'eastus';
@@ -44,19 +44,19 @@ class EnvLoader {
       "https://api.openweathermap.org/data/2.5";
 
   static Future<void> load() async {
-    // 🔴 DEPRECATED: Utiliser EnvConfig.load() à la place
+    // DEPRECATED: Utiliser EnvConfig.load() à la place
     debugPrint(
       'EnvLoader is deprecated. Use EnvConfig with .env file instead.',
     );
 
     if (!isConfigured) {
       throw Exception(
-        '🔴 SÉCURITÉ: EnvLoader ne contient plus de clés pour des raisons de sécurité. '
+        'SECURITE: EnvLoader ne contient plus de cles pour des raisons de securite. '
         'Utilisez EnvConfig avec un fichier .env local.',
       );
     }
 
-    debugPrint('Migration requise vers EnvConfig pour la sécurité des API');
+    debugPrint('Migration requise vers EnvConfig pour la securite des API');
   }
 
   static String get azureTranslatorKey => _azureTranslatorKey;
@@ -90,7 +90,7 @@ class EnvLoader {
   static String get openWeatherEndpoint => _openWeatherEndpoint;
 
   static bool get isConfigured {
-    // 🔴 TOUJOURS FALSE - Migration vers EnvConfig requise
+    // TOUJOURS FALSE - Migration vers EnvConfig requise
     return false;
   }
 }

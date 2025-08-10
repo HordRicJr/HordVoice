@@ -19,8 +19,9 @@ class EnvironmentConfig {
       if (kDebugMode) {
         await _loadFromEnvFile();
       } else {
-        // En production, utiliser les variables d'environnement système
-        _loadFromSystemEnv();
+        // En production, utiliser directement les clés hardcodées
+        // car les variables d'environnement système ne sont pas disponibles
+        _loadHardcodedKeys();
       }
 
       _isLoaded = true;
@@ -132,42 +133,6 @@ class EnvironmentConfig {
           _config[key]?.isNotEmpty == true &&
           !_config[key]!.contains('your_'),
     );
-  }
-
-  /// Charge depuis les variables d'environnement système
-  void _loadFromSystemEnv() {
-    final requiredKeys = [
-      'AZURE_SPEECH_KEY',
-      'AZURE_SPEECH_REGION',
-      'AZURE_SPEECH_ENDPOINT',
-      'AZURE_OPENAI_KEY',
-      'AZURE_OPENAI_ENDPOINT',
-      'AZURE_OPENAI_DEPLOYMENT',
-      'AZURE_TRANSLATOR_KEY',
-      'AZURE_TRANSLATOR_ENDPOINT',
-      'AZURE_LANGUAGE_KEY',
-      'AZURE_LANGUAGE_ENDPOINT',
-      'AZURE_LANGUAGE_REGION',
-      'AZURE_ML_KEY',
-      'AZURE_ML_ENDPOINT',
-      'AZURE_FORM_RECOGNIZER_KEY',
-      'AZURE_FORM_RECOGNIZER_ENDPOINT',
-      'AZURE_FORM_RECOGNIZER_REGION',
-      'AZURE_MAPS_KEY',
-      'AZURE_MAPS_CLIENT_ID',
-      'AZURE_MAPS_ENDPOINT',
-      'SUPABASE_URL',
-      'SUPABASE_ANON_KEY',
-      'OPENWEATHERMAP_API_KEY',
-      'OPENWEATHERMAP_ENDPOINT',
-    ];
-
-    for (String key in requiredKeys) {
-      final value = Platform.environment[key];
-      if (value != null && value.isNotEmpty) {
-        _config[key] = value;
-      }
-    }
   }
 
   /// Obtient une valeur de configuration

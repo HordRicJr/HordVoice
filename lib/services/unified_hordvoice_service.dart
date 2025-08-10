@@ -119,7 +119,7 @@ class UnifiedHordVoiceService {
     _isInitializing = true;
 
     try {
-      debugPrint('🚀 DÉBUT Initialisation UnifiedHordVoiceService');
+      debugPrint('DEBUT Initialisation UnifiedHordVoiceService');
 
       // Vérifier que Supabase est initialisé
       try {
@@ -162,7 +162,7 @@ class UnifiedHordVoiceService {
 
       debugPrint('Services essentiels initialisés');
       _isInitialized = true;
-      debugPrint('✅ FIN Initialisation UnifiedHordVoiceService - SUCCÈS');
+      debugPrint('FIN Initialisation UnifiedHordVoiceService - SUCCES');
     } catch (e) {
       debugPrint(
         'Erreur lors de l\'initialisation des services essentiels: $e',
@@ -184,7 +184,7 @@ class UnifiedHordVoiceService {
     _secondaryInitialized = true;
 
     try {
-      debugPrint('🔧 DÉBUT Initialisation services secondaires');
+      debugPrint('DEBUT Initialisation services secondaires');
 
       // Initialiser les services secondaires
       _weatherService = WeatherService();

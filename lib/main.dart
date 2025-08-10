@@ -144,10 +144,15 @@ class _AppInitializerState extends State<AppInitializer>
       final supabaseKey = envConfig.supabaseAnonKey;
 
       if (supabaseUrl != null && supabaseKey != null) {
-        await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
-        debugPrint('***** Supabase init completed *****');
-        // Délai pour s'assurer que l'initialisation est complète
-        await Future.delayed(const Duration(milliseconds: 300));
+        try {
+          await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+          debugPrint('***** Supabase init completed *****');
+          // Délai pour s'assurer que l'initialisation est complète
+          await Future.delayed(const Duration(milliseconds: 300));
+        } catch (e) {
+          debugPrint('Erreur initialisation Supabase: $e');
+          debugPrint('Continuons en mode déconnecté...');
+        }
       } else {
         debugPrint('Supabase non configuré - fonctionnement en mode local');
       }
