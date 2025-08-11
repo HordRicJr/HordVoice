@@ -117,30 +117,54 @@ class WeatherService {
   /// Obtient la météo pour la position actuelle
   Future<Map<String, dynamic>> getCurrentLocationWeather() async {
     try {
-      // Vérifier les permissions de localisation
+      // Vérifier les permissions de localisation SANS CRASH
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Permission de localisation refusée');
+          debugPrint('Permission de localisation refusée - fallback Lomé');
+          return await getWeatherByCity('Lomé');
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        throw Exception('Permission de localisation refusée définitivement');
+        debugPrint(
+          'Permission de localisation refusée définitivement - fallback Paris',
+        );
+        return await getWeatherByCity('Paris');
       }
 
-      // Obtenir la position actuelle
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: Duration(seconds: 10),
-      );
+      // Obtenir la position actuelle avec timeout court et gestion d'erreur
+      final position =
+          await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+            timeLimit: Duration(seconds: 5), // Réduit de 10s à 5s
+          ).timeout(
+            Duration(seconds: 8), // Timeout global
+            onTimeout: () {
+              debugPrint('Timeout géolocalisation - fallback Paris');
+              throw Exception('Timeout');
+            },
+          );
 
       return await getCurrentWeather(position.latitude, position.longitude);
     } catch (e) {
       debugPrint('Erreur localisation pour météo: $e');
-      // Fallback sur Paris
-      return await getWeatherByCity('Paris');
+      // Fallback robuste sur Paris
+      try {
+        return await getWeatherByCity('Paris');
+      } catch (fallbackError) {
+        debugPrint('Erreur fallback météo: $fallbackError');
+        // Données météo par défaut si tout échoue
+        return {
+          'location': 'Paris',
+          'temperature': 20,
+          'description': 'Données non disponibles',
+          'humidity': 50,
+          'windSpeed': 10,
+          'icon': '01d',
+        };
+      }
     }
   }
 

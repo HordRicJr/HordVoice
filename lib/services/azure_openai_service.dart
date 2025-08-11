@@ -2,14 +2,25 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'environment_config.dart';
+import 'circuit_breaker.dart';
 
 class AzureOpenAIService {
   late http.Client _client;
   bool _isInitialized = false;
   final EnvironmentConfig _envConfig = EnvironmentConfig();
+  String? _lastResponse;
+  late CircuitBreaker _azureCircuit;
 
   Future<void> initialize() async {
     _client = http.Client();
+
+    // Initialiser le circuit breaker pour Azure OpenAI
+    _azureCircuit = CircuitBreakerManager.instance.getCircuit(
+      'azure-openai',
+      failureThreshold: 3,
+      timeout: Duration(seconds: 15),
+      retryTimeout: Duration(minutes: 2),
+    );
 
     // Charger la configuration
     await _envConfig.loadConfig();
@@ -22,13 +33,22 @@ class AzureOpenAIService {
 
     _isInitialized = true;
     debugPrint('AzureOpenAIService initialisé avec configuration réelle');
+    debugPrint('Endpoint: ${_envConfig.azureOpenAIEndpoint}');
+    debugPrint('Deployment: ${_envConfig.azureOpenAIDeployment}');
+    debugPrint('URL complète: ${_buildOpenAIUrl()}');
+    debugPrint('🛡️ Circuit breaker Azure OpenAI configuré');
   }
 
   /// Construit l'URL pour les appels Azure OpenAI
   String _buildOpenAIUrl() {
     final endpoint = _envConfig.azureOpenAIEndpoint!;
     final deployment = _envConfig.azureOpenAIDeployment;
-    return '${endpoint}openai/deployments/$deployment/chat/completions?api-version=2023-05-15';
+
+    // S'assurer que l'endpoint se termine par "/"
+    final cleanEndpoint = endpoint.endsWith('/') ? endpoint : '$endpoint/';
+
+    // URL complète au format Azure AI Foundry
+    return '${cleanEndpoint}openai/deployments/$deployment/chat/completions?api-version=2024-02-15-preview';
   }
 
   /// Obtient les headers pour les appels Azure OpenAI
@@ -43,47 +63,99 @@ class AzureOpenAIService {
   Future<String> analyzeIntent(String userInput) async {
     if (!_isInitialized) throw Exception('Service non initialisé');
 
-    try {
-      final response = await _client.post(
-        Uri.parse(_buildOpenAIUrl()),
-        headers: _buildHeaders(),
-        body: jsonEncode({
-          'messages': [
-            {
-              'role': 'system',
-              'content':
-                  '''Tu es un assistant vocal africain qui analyse les intentions des utilisateurs.
-              Analyse cette phrase et retourne une seule catégorie d'intention parmi:
-              - weather (météo)
-              - news (actualités)
-              - music (musique)
-              - navigation (direction, route)
-              - calendar (calendrier, rendez-vous)
-              - health (santé, forme)
-              - system (système, batterie, paramètres)
-              - general (conversation générale)
-              
-              Réponds uniquement par la catégorie, sans explication.''',
-            },
-            {'role': 'user', 'content': userInput},
-          ],
-          'max_tokens': 50,
-          'temperature': 0.3,
-        }),
-      );
+    debugPrint(
+      '🤖 Azure OpenAI - Analyse intention: ${userInput.length} chars',
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final content = data['choices'][0]['message']['content'] as String;
-        return content.trim().toLowerCase();
-      } else {
-        debugPrint('Erreur API Azure OpenAI: ${response.statusCode}');
-        return 'general';
-      }
-    } catch (e) {
-      debugPrint('Erreur lors de l\'analyse d\'intention: $e');
-      return 'general';
+    return await _azureCircuit.executeWithFallback(
+      () async {
+        final response = await _client
+            .post(
+              Uri.parse(_buildOpenAIUrl()),
+              headers: _buildHeaders(),
+              body: jsonEncode({
+                'messages': [
+                  {
+                    'role': 'system',
+                    'content':
+                        '''Tu es un assistant vocal africain qui analyse les intentions des utilisateurs.
+                Analyse cette phrase et retourne une seule catégorie d'intention parmi:
+                - weather (météo)
+                - news (actualités)
+                - music (musique)
+                - navigation (direction, route)
+                - calendar (calendrier, rendez-vous)
+                - health (santé, forme)
+                - system (système, batterie, paramètres)
+                - general (conversation générale)
+                
+                Réponds uniquement par la catégorie, sans explication.''',
+                  },
+                  {'role': 'user', 'content': userInput},
+                ],
+                'max_tokens': 50,
+                'temperature': 0.3,
+              }),
+            )
+            .timeout(Duration(seconds: 15)); // Timeout de sécurité
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final content = data['choices'][0]['message']['content'] as String;
+          final result = content.trim().toLowerCase();
+          _lastResponse = result;
+          debugPrint('✅ Azure OpenAI - Intention détectée: $result');
+          return result;
+        } else {
+          debugPrint(
+            '❌ Erreur API Azure OpenAI: ${response.statusCode} - ${response.body}',
+          );
+          throw Exception('Erreur API: ${response.statusCode}');
+        }
+      },
+      () {
+        debugPrint('🔄 Fallback - Utilisation de l\'analyse locale');
+        return _analyzeIntentLocally(userInput);
+      },
+    );
+  }
+
+  /// Analyse locale d'intention en cas de fallback
+  String _analyzeIntentLocally(String userInput) {
+    final input = userInput.toLowerCase();
+
+    // Patterns simples pour classification locale
+    if (input.contains('météo') ||
+        input.contains('temps') ||
+        input.contains('pluie')) {
+      return 'weather';
+    } else if (input.contains('musique') ||
+        input.contains('chanson') ||
+        input.contains('jouer')) {
+      return 'music';
+    } else if (input.contains('nouvelle') ||
+        input.contains('info') ||
+        input.contains('actualité')) {
+      return 'news';
+    } else if (input.contains('route') ||
+        input.contains('direction') ||
+        input.contains('aller')) {
+      return 'navigation';
+    } else if (input.contains('rendez-vous') ||
+        input.contains('calendrier') ||
+        input.contains('agenda')) {
+      return 'calendar';
+    } else if (input.contains('santé') ||
+        input.contains('forme') ||
+        input.contains('exercice')) {
+      return 'health';
+    } else if (input.contains('batterie') ||
+        input.contains('système') ||
+        input.contains('paramètre')) {
+      return 'system';
     }
+
+    return 'general';
   }
 
   /// Génère une réponse personnalisée selon le profil utilisateur
@@ -267,8 +339,26 @@ class AzureOpenAIService {
     }
   }
 
+  /// Obtient la dernière réponse générée
+  String getLastResponse() {
+    return _lastResponse ??
+        "Je suis désolé, je n'ai pas de réponse disponible.";
+  }
+
+  /// Efface la dernière réponse mise en cache
+  void clearLastResponse() {
+    _lastResponse = null;
+    debugPrint('🧹 Cache Azure OpenAI vidé');
+  }
+
   void dispose() {
-    _client.close();
+    try {
+      _client.close();
+    } catch (e) {
+      debugPrint('⚠️ Erreur lors de la fermeture du client HTTP: $e');
+    }
     _isInitialized = false;
+    _lastResponse = null;
+    debugPrint('🔄 AzureOpenAIService fermé et nettoyé');
   }
 }

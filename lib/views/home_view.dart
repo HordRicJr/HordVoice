@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../controllers/persistent_ai_controller.dart';
 import '../services/unified_hordvoice_service.dart';
 import '../services/voice_management_service.dart';
 import '../services/navigation_service.dart';
-import '../widgets/animated_avatar.dart';
+import '../widgets/spacial_avatar_view.dart';
 import '../widgets/audio_waveform.dart';
-import '../views/permissions_view.dart';
 
+/// Vue principale HordVoice avec design spatial intégré
+/// Interface voice-first avec avatar 3D flottant dans l'univers spatial
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
 
@@ -16,67 +18,234 @@ class HomeView extends ConsumerStatefulWidget {
 
 class _HomeViewState extends ConsumerState<HomeView>
     with TickerProviderStateMixin {
+  // Services
   late UnifiedHordVoiceService _unifiedService;
+  late PersistentAIController _persistentController;
   late VoiceManagementService _voiceService;
   late NavigationService _navigationService;
 
-  late AnimationController _pulseController;
+  // Animation Controllers
+  late AnimationController _spatialController;
   late AnimationController _waveController;
+  late AnimationController _floatingController;
+  late AnimationController _transitionController;
 
+  // Animations
+  late Animation<double> _spatialAnimation;
+  late Animation<double> _floatingAnimation;
+  late Animation<double> _fadeAnimation;
+
+  // État
   bool _isListening = false;
   bool _isInitialized = false;
-  String _statusText = "Initialisation...";
+  String _statusText = "Initialisation de l'univers spatial...";
   String _currentResponse = "";
 
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
+    _initializeAnimations();
     _initializeServices();
   }
 
-  void _initializeControllers() {
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+  void _initializeAnimations() {
+    // Animation spatiale principale pour l'avatar - ACCÉLÉRÉE
+    _spatialController = AnimationController(
+      duration: const Duration(milliseconds: 1200), // 4s -> 1.2s
       vsync: this,
     );
 
-    _waveController = AnimationController(
-      duration: const Duration(milliseconds: 800),
+    // Animation de flottement continu - ACCÉLÉRÉE
+    _floatingController = AnimationController(
+      duration: const Duration(milliseconds: 1500), // 3s -> 1.5s
       vsync: this,
     );
+
+    // Animation des ondes audio - ACCÉLÉRÉE
+    _waveController = AnimationController(
+      duration: const Duration(milliseconds: 400), // 800ms -> 400ms
+      vsync: this,
+    );
+
+    // Animation de transition - ACCÉLÉRÉE
+    _transitionController = AnimationController(
+      duration: const Duration(milliseconds: 600), // 1.5s -> 600ms
+      vsync: this,
+    );
+
+    // Configuration des animations
+    _spatialAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _spatialController,
+        curve: Curves.easeOutCubic,
+      ), // Curve plus rapide
+    );
+
+    _floatingAnimation = Tween<double>(begin: -10.0, end: 10.0).animate(
+      CurvedAnimation(parent: _floatingController, curve: Curves.easeInOut),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _transitionController, curve: Curves.easeOut),
+    );
+
+    // DÉMARRAGE AUTOMATIQUE IMMÉDIAT DES ANIMATIONS
+    _floatingController.repeat(reverse: true);
+    _spatialController.forward(); // Démarrer immédiatement
+    _transitionController.forward(); // Démarrer immédiatement
   }
 
   Future<void> _initializeServices() async {
     try {
       setState(() {
-        _statusText = "Démarrage des services...";
+        _statusText = "Préparation de l'interface...";
       });
 
+      // Démarrer immédiatement l'UI sans attendre
+      setState(() {
+        _isInitialized = true; // Marquer comme initialisé pour l'UI
+        _statusText = "Prêt! Initialisation en arrière-plan...";
+      });
+
+      // Initialisation DIFFÉRÉE en arrière-plan
+      _initializeServicesInBackground();
+    } catch (e) {
+      debugPrint('Erreur initialisation: $e');
+      setState(() {
+        _statusText = "Interface prête (mode dégradé)";
+        _isInitialized = true;
+      });
+    }
+  }
+
+  /// Initialisation des services en arrière-plan pour ne pas bloquer l'UI
+  Future<void> _initializeServicesInBackground() async {
+    // Attendre 100ms pour laisser l'UI se dessiner
+    await Future.delayed(Duration(milliseconds: 100));
+
+    try {
+      // Initialiser les services de base SANS ATTENDRE
       _unifiedService = UnifiedHordVoiceService();
       _voiceService = VoiceManagementService();
       _navigationService = NavigationService();
 
-      await _unifiedService.initialize();
-      await _voiceService.initialize();
-      await _navigationService.initialize();
+      // Initialisation PARALLÈLE et ROBUSTE avec timeouts ultra-courts
+      final initFutures = <Future<void>>[];
 
-      setState(() {
-        _isInitialized = true;
-        _statusText = "Prêt ! Dites 'Hey Ric' pour commencer";
-      });
+      // Service unifié avec timeout court
+      initFutures.add(
+        _unifiedService
+            .initialize()
+            .timeout(
+              Duration(seconds: 5), // Réduit de 10s à 5s
+              onTimeout: () {
+                debugPrint('Timeout UnifiedService - continuer sans');
+              },
+            )
+            .catchError((e) {
+              debugPrint('Erreur UnifiedService: $e - continuer');
+            }),
+      );
 
-      _pulseController.repeat();
+      // Service vocal avec timeout court
+      initFutures.add(
+        _voiceService
+            .initialize()
+            .timeout(
+              Duration(seconds: 2), // Réduit de 5s à 2s
+              onTimeout: () {
+                debugPrint('Timeout VoiceService - continuer sans');
+              },
+            )
+            .catchError((e) {
+              debugPrint('Erreur VoiceService: $e - continuer');
+            }),
+      );
 
-      // CORRECTION: Démarrer automatiquement l'onboarding vocal
-      _startAutomaticOnboarding();
+      // Service navigation avec timeout court
+      initFutures.add(
+        _navigationService
+            .initialize()
+            .timeout(
+              Duration(seconds: 1), // Réduit de 3s à 1s
+              onTimeout: () {
+                debugPrint('Timeout NavigationService - mode fallback');
+              },
+            )
+            .catchError((e) {
+              debugPrint('Erreur NavigationService: $e - mode fallback');
+            }),
+      );
 
-      debugPrint('HomeView services initialisés avec succès');
+      // Attendre SEULEMENT 1 seconde max pour les services critiques
+      try {
+        await Future.wait(initFutures).timeout(
+          Duration(seconds: 1), // Réduit drastiquement à 1s
+          onTimeout: () {
+            debugPrint('Timeout global initialisation - continuer quand même');
+            return <void>[]; // Retourner liste vide
+          },
+        );
+      } catch (e) {
+        debugPrint('Erreur initialisation parallèle: $e - continuer');
+      }
+
+      // Initialiser IA persistante en arrière-plan
+      _initializePersistentAIInBackground();
+
+      debugPrint('🌌 Univers spatial HordVoice initialisé (mode robuste)');
     } catch (e) {
-      setState(() {
-        _statusText = "Erreur d'initialisation: ${e.toString()}";
-      });
-      debugPrint('Erreur initialisation HomeView: $e');
+      debugPrint('❌ Erreur initialisation (continuons): $e');
+    }
+  }
+
+  /// Initialise l'IA persistante en arrière-plan
+  Future<void> _initializePersistentAIInBackground() async {
+    // Attendre 500ms pour laisser l'UI se stabiliser
+    await Future.delayed(Duration(milliseconds: 500));
+
+    try {
+      debugPrint('Initialisation PersistentAIController...');
+      _persistentController = PersistentAIController();
+
+      await _persistentController.initialize().timeout(
+        Duration(seconds: 2),
+        onTimeout: () {
+          debugPrint('Timeout PersistentController - mode dégradé');
+        },
+      );
+
+      // Activer automatiquement seulement si succès
+      await _enablePersistentAIAutomatically();
+
+      if (mounted) {
+        setState(() {
+          _statusText = "Ric est connecté dans l'univers spatial";
+        });
+      }
+    } catch (e) {
+      debugPrint('PersistentController échoué: $e - continuer sans');
+      if (mounted) {
+        setState(() {
+          _statusText = "Mode spatial disponible";
+        });
+      }
+    }
+  }
+
+  /// Active automatiquement l'IA persistante de manière transparente
+  Future<void> _enablePersistentAIAutomatically() async {
+    try {
+      debugPrint('🚀 Activation automatique de l\'IA persistante spatiale...');
+
+      await _persistentController.enablePersistentAI(
+        showWelcomeAnimation: false, // Plus discret dans l'univers spatial
+      );
+
+      debugPrint('✨ IA persistante spatiale activée automatiquement');
+    } catch (e) {
+      debugPrint('⚠️ Erreur activation automatique IA persistante: $e');
+      // Ne pas bloquer l'initialisation si l'IA persistante échoue
     }
   }
 
@@ -94,13 +263,15 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       setState(() {
         _isListening = true;
-        _statusText = "Je vous écoute...";
+        _statusText = "Ric vous écoute depuis l'univers spatial...";
         _currentResponse = "";
       });
 
       _waveController.repeat();
 
       // Démarrer l'écoute avec le service unifié
+      await _unifiedService.startListening();
+
       final response = await _unifiedService.processVoiceCommand(
         "start_listening",
       );
@@ -111,7 +282,7 @@ class _HomeViewState extends ConsumerState<HomeView>
     } catch (e) {
       setState(() {
         _isListening = false;
-        _statusText = "Erreur d'écoute: ${e.toString()}";
+        _statusText = "Erreur d'écoute spatiale: ${e.toString()}";
       });
       _waveController.stop();
     }
@@ -121,16 +292,14 @@ class _HomeViewState extends ConsumerState<HomeView>
     try {
       setState(() {
         _isListening = false;
-        _statusText = "Traitement...";
+        _statusText = "Traitement dans l'univers spatial...";
       });
 
       _waveController.stop();
-
-      // Arrêter l'écoute
       await _unifiedService.stopListening();
 
       setState(() {
-        _statusText = "Prêt ! Dites 'Hey Ric' pour commencer";
+        _statusText = "Prêt ! Dites 'Hey Ric' dans l'univers spatial";
       });
     } catch (e) {
       setState(() {
@@ -139,288 +308,399 @@ class _HomeViewState extends ConsumerState<HomeView>
     }
   }
 
-  Future<void> _sendTestCommand(String command) async {
-    if (!_isInitialized) return;
-
-    try {
-      setState(() {
-        _statusText = "Traitement de la commande...";
-      });
-
-      final response = await _unifiedService.processVoiceCommand(command);
-
-      setState(() {
-        _currentResponse = response;
-        _statusText = "Commande traitée";
-      });
-
-      // Revenir au statut normal après 3 secondes
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _statusText = "Prêt ! Dites 'Hey Ric' pour commencer";
-          });
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _statusText = "Erreur commande: ${e.toString()}";
-      });
-    }
-  }
-
-  /// Démarre automatiquement l'onboarding vocal sans interface utilisateur
-  void _startAutomaticOnboarding() async {
-    try {
-      // Attendre un délai pour que l'utilisateur voie l'interface
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        setState(() {
-          _statusText = "HordVoice vous écoute - Parlez maintenant";
-        });
-
-        // Démarrer l'écoute automatiquement pour l'onboarding
-        _startListening();
-
-        debugPrint('Onboarding automatique démarré');
-      }
-    } catch (e) {
-      debugPrint('Erreur onboarding automatique: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
-      body: SafeArea(
-        child: Column(
+      backgroundColor: const Color(0xFF0A0A1A), // Fond spatial plus profond
+      body: Container(
+        decoration: _buildSpatialBackground(),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Étoiles et particules spatiales en arrière-plan
+              _buildSpatialParticles(),
+
+              // Interface principale
+              Column(
+                children: [
+                  // Header spatial minimal
+                  _buildSpatialHeader(),
+
+                  // Avatar spatial principal centré
+                  Expanded(child: _buildSpatialAvatarInterface()),
+
+                  // Contrôles voice-first spatiaux
+                  if (_isInitialized) _buildSpatialVoiceControls(),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Arrière-plan spatial avec dégradé et effet d'univers
+  BoxDecoration _buildSpatialBackground() {
+    return const BoxDecoration(
+      gradient: RadialGradient(
+        center: Alignment.center,
+        radius: 1.5,
+        colors: [
+          Color(0xFF1A1A3A), // Centre plus clair
+          Color(0xFF0D0D1F), // Bords plus sombres
+          Color(0xFF050508), // Noir spatial
+        ],
+      ),
+    );
+  }
+
+  /// Particules et étoiles flottantes dans l'univers spatial
+  Widget _buildSpatialParticles() {
+    return AnimatedBuilder(
+      animation: _floatingAnimation,
+      builder: (context, child) {
+        return Positioned.fill(
+          child: CustomPaint(
+            painter: SpatialParticlesPainter(
+              animationValue: _floatingAnimation.value,
+              alpha: _fadeAnimation.value,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Header spatial minimal et élégant
+  Widget _buildSpatialHeader() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Header simplifié
-            _buildSimpleHeader(),
+            // Logo avec effet spatial
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFF64B5F6),
+                  Color(0xFF42A5F5),
+                  Color(0xFF1976D2),
+                ],
+              ).createShader(bounds),
+              child: const Text(
+                'HordVoice',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2.0,
+                ),
+              ),
+            ),
 
-            // Avatar principal centré - Interface Voice-First
-            Expanded(child: _buildVoiceFirstInterface()),
-
-            // Contrôles vocaux essentiels uniquement
-            if (_isInitialized) _buildVoiceControls(),
-
-            const SizedBox(height: 30),
+            // Indicateur de connexion spatial
+            AnimatedBuilder(
+              animation: _spatialController,
+              builder: (context, child) {
+                return Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: _isInitialized
+                        ? Color.lerp(
+                            Colors.blue,
+                            Colors.cyan,
+                            _spatialController.value,
+                          )
+                        : Colors.orange,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isInitialized ? Colors.cyan : Colors.orange)
+                            .withOpacity(0.6),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Header simplifié pour interface voice-first
-  Widget _buildSimpleHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'HordVoice',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+  /// Interface principale avec avatar spatial 3D
+  Widget _buildSpatialAvatarInterface() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_spatialAnimation, _floatingAnimation]),
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _floatingAnimation.value),
+          child: Transform.scale(
+            scale: 0.3 + (_spatialAnimation.value * 0.7),
+            child: Opacity(
+              opacity: _spatialAnimation.value,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Avatar spatial principal
+                  Container(
+                    width: 280,
+                    height: 280,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.cyan.withOpacity(0.3),
+                          Colors.blue.withOpacity(0.1),
+                          Colors.transparent,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.cyan.withOpacity(0.3),
+                          blurRadius: 50,
+                          spreadRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child:
+                        const SpacialAvatarView(), // Widget avatar spatial existant
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Ondes audio spatiales quand en écoute
+                  if (_isListening)
+                    Container(
+                      height: 80,
+                      padding: const EdgeInsets.symmetric(horizontal: 60),
+                      child: AudioWaveform(isActive: _isListening),
+                    ),
+
+                  const SizedBox(height: 30),
+
+                  // Status spatial avec effet holographique
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 20,
+                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    decoration: BoxDecoration(
+                      color: Colors.cyan.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(25),
+                      border: Border.all(
+                        color: Colors.cyan.withOpacity(0.3),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.cyan.withOpacity(0.2),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      _statusText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  // Réponse avec effet spatial si disponible
+                  if (_currentResponse.isNotEmpty) ...[
+                    const SizedBox(height: 25),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 40),
+                      padding: const EdgeInsets.all(25),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.blue.withOpacity(0.3),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.2),
+                            blurRadius: 15,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        _currentResponse,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-          Container(
-            width: 12,
-            height: 12,
-            decoration: BoxDecoration(
-              color: _isInitialized ? Colors.green : Colors.orange,
-              shape: BoxShape.circle,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  /// Interface voice-first centrée sur l'avatar
-  Widget _buildVoiceFirstInterface() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Avatar principal animé - centre de l'interface
-        AnimatedBuilder(
-          animation: _pulseController,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: 1.0 + (_pulseController.value * 0.08),
-              child: Container(
-                width: 220,
-                height: 220,
-                child: const AnimatedAvatar(),
-              ),
-            );
-          },
-        ),
+  /// Contrôles vocaux spatiaux - Interface voice-first pure
+  Widget _buildSpatialVoiceControls() {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        children: [
+          // Bouton principal d'écoute spatial
+          GestureDetector(
+            onTap: _toggleListening,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _spatialController,
+                _waveController,
+              ]),
+              builder: (context, child) {
+                final pulseValue = _isListening
+                    ? (1.0 + (_waveController.value * 0.2))
+                    : 1.0;
 
-        const SizedBox(height: 40),
-
-        // Waveform quand en écoute
-        if (_isListening)
-          Container(
-            height: 60,
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: AudioWaveform(isActive: _isListening),
+                return Transform.scale(
+                  scale: pulseValue,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        colors: _isListening
+                            ? [
+                                Colors.red.withOpacity(0.8),
+                                Colors.red.withOpacity(0.6),
+                                Colors.red.withOpacity(0.3),
+                              ]
+                            : [
+                                Colors.cyan.withOpacity(0.8),
+                                Colors.blue.withOpacity(0.6),
+                                Colors.blue.withOpacity(0.3),
+                              ],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: (_isListening ? Colors.red : Colors.cyan)
+                              .withOpacity(0.6),
+                          blurRadius: 30,
+                          spreadRadius: _isListening ? 15 : 8,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                      color: Colors.white,
+                      size: 60,
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
 
-        const SizedBox(height: 30),
+          const SizedBox(height: 40),
 
-        // Status vocal centré
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          margin: const EdgeInsets.symmetric(horizontal: 30),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-          ),
-          child: Text(
-            _statusText,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
+          // Instruction vocale spatiale
+          Text(
+            _isListening
+                ? "🎙️ En écoute dans l'univers spatial..."
+                : "🌌 Touchez pour parler à Ric",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 16,
               fontWeight: FontWeight.w500,
+              letterSpacing: 1.0,
             ),
             textAlign: TextAlign.center,
           ),
-        ),
-
-        // Réponse si disponible
-        if (_currentResponse.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 30),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: Colors.blue.withOpacity(0.3), width: 1),
-            ),
-            child: Text(
-              _currentResponse,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  /// Contrôles vocaux essentiels
-  Widget _buildVoiceControls() {
-    return Column(
-      children: [
-        // Bouton principal d'écoute - Plus grand et centré
-        GestureDetector(
-          onTap: _toggleListening,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: _isListening ? Colors.red : Colors.green,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: (_isListening ? Colors.red : Colors.green).withOpacity(
-                    0.5,
-                  ),
-                  blurRadius: 25,
-                  spreadRadius: _isListening ? 10 : 5,
-                ),
-              ],
-            ),
-            child: Icon(
-              _isListening ? Icons.stop : Icons.mic,
-              color: Colors.white,
-              size: 50,
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 30),
-
-        // Contrôles secondaires simplifiés - Vocal uniquement
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildVoiceButton(
-              icon: Icons.record_voice_over,
-              label: 'Voix',
-              onTap: () => _sendTestCommand('changer voix'),
-            ),
-            _buildVoiceButton(
-              icon: Icons.settings,
-              label: 'Config',
-              onTap: () => _sendTestCommand('paramètres'),
-            ),
-            _buildVoiceButton(
-              icon: Icons.security,
-              label: 'Accès',
-              onTap: _showPermissions,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVoiceButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: Icon(icon, color: Colors.white, size: 30),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  void _showPermissions() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const PermissionsView()));
   }
 
   @override
   void dispose() {
-    _pulseController.dispose();
+    _spatialController.dispose();
     _waveController.dispose();
+    _floatingController.dispose();
+    _transitionController.dispose();
     super.dispose();
   }
+}
+
+/// Painter pour les particules et étoiles spatiales
+class SpatialParticlesPainter extends CustomPainter {
+  final double animationValue;
+  final double alpha;
+
+  SpatialParticlesPainter({required this.animationValue, required this.alpha});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.6 * alpha)
+      ..style = PaintingStyle.fill;
+
+    final glowPaint = Paint()
+      ..color = Colors.cyan.withOpacity(0.3 * alpha)
+      ..style = PaintingStyle.fill;
+
+    // Dessiner des étoiles animées
+    for (int i = 0; i < 50; i++) {
+      final x = (i * 37.0) % size.width;
+      final y = (i * 67.0) % size.height;
+      final offset = animationValue * 2.0;
+
+      final starX = (x + offset) % size.width;
+      final starY = (y + offset * 0.5) % size.height;
+
+      // Étoile principale
+      canvas.drawCircle(Offset(starX, starY), 1.5, paint);
+
+      // Effet de lueur pour certaines étoiles
+      if (i % 7 == 0) {
+        canvas.drawCircle(Offset(starX, starY), 4.0, glowPaint);
+      }
+    }
+
+    // Dessiner des particules flottantes
+    for (int i = 0; i < 20; i++) {
+      final x = (i * 73.0) % size.width;
+      final y = (i * 109.0) % size.height;
+      final particleOffset = animationValue * 1.5;
+
+      final particleX = (x + particleOffset) % size.width;
+      final particleY = (y + particleOffset * 0.3) % size.height;
+
+      paint.color = Colors.cyan.withOpacity(0.4 * alpha);
+      canvas.drawCircle(Offset(particleX, particleY), 2.0, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

@@ -129,7 +129,8 @@
     <application
         android:label="HordVoice"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -137,7 +138,7 @@
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
+            android:hardwareAccelerated="false"
             android:windowSoftInputMode="adjustResize">
             <!-- Specifies an Android theme to apply to this Activity as soon as
                  the Android process has started. This theme is visible to the user
@@ -161,6 +162,14 @@
                 <data android:scheme="package" />
             </intent-filter>
         </activity>
+        
+        <!-- Service d'arrière-plan pour l'IA persistante -->
+        <service
+            android:name="id.flutter.flutter_background_service.BackgroundService"
+            android:exported="false"
+            android:foregroundServiceType="microphone"
+            tools:replace="android:exported">
+        </service>
         
         <!-- HordVoice Quick Settings Tile Service -->
         <!-- Temporairement désactivé - classe manquante

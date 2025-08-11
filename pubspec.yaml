@@ -78,7 +78,7 @@ dependencies:
 
   # RESPONSIVE DESIGN - Multi-plateforme
   responsive_framework: ^1.5.1
-  health: ^13.1.1  # Package health réactivé avec version compatible
+  health: ^13.1.1  
 
   # NEW DEPENDENCIES - Communication et Système (TEMPORAIREMENT SIMPLIFIÉES)
   flutter_app_info: ^3.0.3     # Informations application

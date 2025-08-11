@@ -87,10 +87,10 @@ class EnvironmentConfig {
       'AZURE_TRANSLATOR_ENDPOINT':
           'https://api.cognitive.microsofttranslator.com/',
       'AZURE_OPENAI_KEY':
-          'ARHFmyisJHz76YW6ZHaRsiyZ8ZgXTFwNGhyLZ8rTiic1t1VE17g8JQQJ99BHACYeBjFXJ3w3AAABACOGKax4',
+          'EplfGAB4RFtjtf3aempKYJvD2cO5YZoEXMgNVSTSMOzfLPci1eU2JQQJ99BHACHYHv6XJ3w3AAAAACOGuq1f',
       'AZURE_OPENAI_ENDPOINT':
-          'https://assistancevocalintelligent.openai.azure.com/',
-      'AZURE_OPENAI_DEPLOYMENT': 'chat',
+          'https://assou-me4m6orw-eastus2.openai.azure.com/',
+      'AZURE_OPENAI_DEPLOYMENT': 'gpt-4',
       'AZURE_LANGUAGE_KEY':
           'DiaAEgjah3gPN5A5eN1HvUIP8a8ZtJrAzcQe24CnCv99ha5vgqzfJQQJ99BHACYeBjFXJ3w3AAAaACOGgiAQ',
       'AZURE_LANGUAGE_ENDPOINT':

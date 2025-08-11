@@ -53,20 +53,31 @@ class VoiceManagementService {
         return;
       }
 
-      // Charger depuis Supabase (manifest des voix)
-      final response = await _supabase
-          .from('available_voices')
-          .select()
-          .eq('is_active', true)
-          .order('name');
+      // Charger depuis Supabase (manifest des voix) - avec gestion d'erreur
+      try {
+        final response = await _supabase
+            .from('available_voices')
+            .select()
+            .eq('is_active', true)
+            .order('name');
 
-      if (response.isNotEmpty) {
-        _availableVoices = (response as List)
-            .map((json) => VoiceOption.fromJson(json))
-            .toList();
-      } else {
-        // Fallback: charger voix Azure Speech directement
+        if (response.isNotEmpty) {
+          _availableVoices = (response as List)
+              .map((json) => VoiceOption.fromJson(json))
+              .toList();
+          _lastVoiceRefresh = DateTime.now();
+          return;
+        }
+      } catch (dbError) {
+        debugPrint('Table available_voices non trouvée: $dbError');
+      }
+
+      // Fallback: charger voix Azure Speech directement ou voix par défaut
+      try {
         await _loadAzureVoices();
+      } catch (azureError) {
+        debugPrint('Azure voices non disponibles: $azureError');
+        _setupDefaultVoices();
       }
 
       _lastVoiceRefresh = DateTime.now();

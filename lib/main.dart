@@ -4,26 +4,38 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Services
 import 'services/environment_config.dart';
 import 'services/permission_manager_service.dart';
 import 'services/unified_hordvoice_service.dart';
 import 'services/auth_service.dart';
+import 'services/global_error_handler.dart';
+import 'services/crash_prevention_system.dart';
+import 'services/database_initialization_service.dart';
 
 // Theme
 import 'theme/app_theme.dart';
 import 'theme/design_tokens.dart';
 
 // Views
-import 'views/voice_onboarding_view.dart';
 import 'views/home_view.dart';
 import 'views/permissions_view.dart';
-import 'views/register_view.dart';
+import 'views/login_view.dart';
+import 'views/spatial_voice_onboarding_view.dart';
 
 void main() async {
   // Initialisation Flutter
   WidgetsFlutterBinding.ensureInitialized();
+
+  // INITIALISATION CRITIQUE: Handler global d'erreurs
+  GlobalErrorHandler.instance.initialize();
+  GlobalErrorHandler.instance.logAction('app_startup');
+
+  // NOUVEAU: Système de prévention des crashes
+  await CrashPreventionSystem.instance.initialize();
+  CrashPreventionSystem.instance.runSystemValidation();
 
   // Configuration de l'écran
   SystemChrome.setPreferredOrientations([
@@ -41,12 +53,7 @@ void main() async {
     ),
   );
 
-  // Configuration d'erreur globale
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    debugPrint('Flutter Error: ${details.exception}');
-    debugPrint('Stack: ${details.stack}');
-  };
+  // Configuration d'erreur globale - SUPPRIMÉE car gérée par GlobalErrorHandler
 
   // Activer WakeLock pour les sessions vocales
   try {
@@ -147,6 +154,13 @@ class _AppInitializerState extends State<AppInitializer>
         try {
           await Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
           debugPrint('***** Supabase init completed *****');
+
+          // NOUVEAU: Initialisation et vérification de la base de données
+          await DatabaseInitializationService.instance.initialize();
+          final dbHealth = await DatabaseInitializationService.instance
+              .checkDatabaseHealth();
+          debugPrint('🗄️ DB Health: $dbHealth');
+
           // Délai pour s'assurer que l'initialisation est complète
           await Future.delayed(const Duration(milliseconds: 300));
         } catch (e) {
@@ -157,11 +171,11 @@ class _AppInitializerState extends State<AppInitializer>
         debugPrint('Supabase non configuré - fonctionnement en mode local');
       }
 
-      // Étape 3: Vérification de l'authentification
+      // Étape 3: Vérification de l'authentification RAPIDE
       setState(() {
         _statusMessage = 'Vérification de l\'authentification...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
       final authService = AuthService();
       final isAuthenticated = await authService.isUserLoggedIn();
@@ -171,28 +185,30 @@ class _AppInitializerState extends State<AppInitializer>
         setState(() {
           _statusMessage = 'Connexion requise...';
         });
-        await Future.delayed(const Duration(milliseconds: 800));
+        await Future.delayed(
+          const Duration(milliseconds: 300),
+        ); // 800ms -> 300ms
         await _fadeController.forward();
 
         if (mounted) {
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
-              pageBuilder: (context, animation, _) => FadeTransition(
-                opacity: animation,
-                child: const RegisterView(),
-              ),
-              transitionDuration: const Duration(milliseconds: 600),
+              pageBuilder: (context, animation, _) =>
+                  FadeTransition(opacity: animation, child: const LoginView()),
+              transitionDuration: const Duration(
+                milliseconds: 400,
+              ), // 600ms -> 400ms
             ),
           );
         }
         return;
       }
 
-      // Étape 4: Vérification des permissions essentielles
+      // Étape 4: Vérification des permissions essentielles RAPIDE
       setState(() {
         _statusMessage = 'Vérification des permissions...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
       final hasEssentialPermissions =
           await PermissionManagerService.hasEssentialPermissions();
@@ -202,7 +218,9 @@ class _AppInitializerState extends State<AppInitializer>
         setState(() {
           _statusMessage = 'Configuration des permissions requise...';
         });
-        await Future.delayed(const Duration(milliseconds: 800));
+        await Future.delayed(
+          const Duration(milliseconds: 300),
+        ); // 800ms -> 300ms
         await _fadeController.forward();
 
         if (mounted) {
@@ -212,46 +230,44 @@ class _AppInitializerState extends State<AppInitializer>
                 opacity: animation,
                 child: const PermissionsView(),
               ),
-              transitionDuration: const Duration(milliseconds: 600),
+              transitionDuration: const Duration(
+                milliseconds: 400,
+              ), // 600ms -> 400ms
             ),
           );
         }
         return;
       }
 
-      // Étape 3: Initialisation des services principaux
+      // Étape 3: Initialisation LÉGÈRE des services principaux
       setState(() {
-        _statusMessage = 'Initialisation de l\'IA vocale...';
+        _statusMessage = 'Préparation de l\'IA vocale...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 100)); // 500ms -> 100ms
 
-      // Pré-initialisation des services critiques
+      // PAS de pré-initialisation lourde ici
       try {
+        // Juste créer l'instance, l'initialisation se fera dans HomeView
         UnifiedHordVoiceService();
-        // Service déjà singleton, pas besoin de pré-initialisation
       } catch (e) {
         debugPrint('Service Unity: $e');
         // Continuer même si l'initialisation échoue
       }
 
-      // Étape 4: Configuration de l'avatar
+      // Étape 4: Configuration RAPIDE de l'avatar spatial persistant
       setState(() {
-        _statusMessage = 'Configuration de l\'avatar...';
+        _statusMessage = 'Préparation de l\'univers spatial...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 100)); // 500ms -> 100ms
 
-      try {
-        // Configuration avatar - service géré automatiquement
-        debugPrint('Avatar prêt');
-      } catch (e) {
-        debugPrint('Avatar service: $e');
-      }
+      // Note: PersistentAIController sera initialisé dans HomeView
+      // après que tous les services soient prêts
 
-      // Étape 5: Finalisation
+      // Étape 5: Finalisation RAPIDE
       setState(() {
         _statusMessage = 'Finalisation...';
       });
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 200)); // 800ms -> 200ms
 
       // Vérifier si l'onboarding vocal est nécessaire
       final needsOnboarding = await _checkNeedsOnboarding();
@@ -265,7 +281,7 @@ class _AppInitializerState extends State<AppInitializer>
             PageRouteBuilder(
               pageBuilder: (context, animation, _) => FadeTransition(
                 opacity: animation,
-                child: const VoiceOnboardingView(),
+                child: const SpatialVoiceOnboardingView(),
               ),
               transitionDuration: const Duration(milliseconds: 800),
             ),
@@ -273,20 +289,14 @@ class _AppInitializerState extends State<AppInitializer>
         } else {
           Navigator.of(context).pushReplacement(
             PageRouteBuilder(
-              pageBuilder: (context, animation, _) => SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0.0, 1.0),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: animation,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ),
+              pageBuilder: (context, animation, _) => FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
                 child: const HomeView(),
               ),
-              transitionDuration: const Duration(milliseconds: 1000),
+              transitionDuration: const Duration(milliseconds: 400),
             ),
           );
         }
@@ -303,9 +313,31 @@ class _AppInitializerState extends State<AppInitializer>
   }
 
   Future<bool> _checkNeedsOnboarding() async {
-    // CORRECTION: Ne plus afficher l'onboarding, démarrer automatiquement
-    // L'IA va démarrer automatiquement et demander les paramètres vocalement
-    return false; // Toujours false - l'onboarding se fait automatiquement
+    try {
+      // Vérifier si l'onboarding spatial a été complété
+      final prefs = await SharedPreferences.getInstance();
+      final onboardingCompleted =
+          prefs.getBool('onboarding_completed') ?? false;
+      final spatialCompleted = prefs.getBool('spatial_mode_preferred') ?? false;
+
+      // Si ni l'onboarding classique ni spatial n'est complété
+      if (!onboardingCompleted && !spatialCompleted) {
+        debugPrint('🌌 Premier lancement - Onboarding spatial requis');
+        return true;
+      }
+
+      // Si onboarding classique fait mais pas spatial, proposer upgrade
+      if (onboardingCompleted && !spatialCompleted) {
+        debugPrint('🌌 Upgrade vers mode spatial disponible');
+        return false; // Aller vers HomeView avec option upgrade
+      }
+
+      debugPrint('✅ Onboarding spatial déjà complété');
+      return false;
+    } catch (e) {
+      debugPrint('Erreur vérification onboarding: $e');
+      return false; // En cas d'erreur, aller vers HomeView
+    }
   }
 
   @override

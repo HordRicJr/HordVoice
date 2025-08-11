@@ -26,6 +26,7 @@ import 'battery_monitoring_service.dart';
 import 'voice_management_service.dart'; // Étape 11: Gestion des voix
 import 'quick_settings_service.dart'; // Contrôles vocaux système
 import 'transition_animation_service.dart'; // Transitions avatar
+import 'spatial_overlay_service.dart'; // Avatar spatial persistant
 
 final unifiedHordVoiceServiceProvider = Provider<UnifiedHordVoiceService>((
   ref,
@@ -71,6 +72,8 @@ class UnifiedHordVoiceService {
   _voiceManagementService; // Étape 11: Gestion des voix
   late QuickSettingsService _quickSettingsService; // Contrôles vocaux système
   late TransitionAnimationService _transitionService; // Transitions avatar
+  late SpatialOverlayService
+  _spatialOverlayService; // Avatar spatial persistant
 
   final StreamController<String> _aiResponseController =
       StreamController<String>.broadcast();
@@ -103,7 +106,7 @@ class UnifiedHordVoiceService {
   Stream<bool> get wakeWordStream => _wakeWordController.stream;
   Stream<bool> get isSpeakingStream => _isSpeakingController.stream;
 
-  /// Initialisation progressive - Services essentiels
+  /// Initialisation progressive - Services essentiels SEULEMENT
   Future<void> initializeCore() async {
     if (_isInitialized) {
       debugPrint('UnifiedHordVoiceService déjà initialisé - Ignorer');
@@ -125,23 +128,24 @@ class UnifiedHordVoiceService {
       try {
         _supabase = Supabase.instance.client;
       } catch (e) {
-        throw Exception(
-          'Supabase doit être initialisé avant UnifiedHordVoiceService: $e',
-        );
+        debugPrint('Supabase non disponible, mode déconnecté: $e');
+        // Continuer sans Supabase au lieu de crash
       }
 
       _tts = FlutterTts();
       _battery = Battery();
       _notifications = FlutterLocalNotificationsPlugin();
 
+      // Initialisation RAPIDE des services essentiels seulement
       await _initializeNotifications();
       await _initializeTTS();
 
-      // Initialiser seulement les services essentiels
+      // Services critiques avec gestion d'erreur robuste
       _aiService = AzureOpenAIService();
       _azureSpeechService = AzureSpeechService();
       _emotionAnalysisService = EmotionAnalysisService();
 
+      // Initialisation Azure sans bloquer l'interface
       try {
         await _aiService.initialize();
       } catch (e) {
@@ -198,6 +202,7 @@ class UnifiedHordVoiceService {
       _voiceManagementService = VoiceManagementService();
       _quickSettingsService = QuickSettingsService();
       _transitionService = TransitionAnimationService();
+      _spatialOverlayService = SpatialOverlayService();
 
       // Initialisation safe avec gestion d'erreurs
       final services = [
@@ -212,6 +217,7 @@ class UnifiedHordVoiceService {
         () => _voiceManagementService.initialize(),
         () => _quickSettingsService.initialize(),
         () => _transitionService.initialize(),
+        () => _spatialOverlayService.initialize(),
       ];
 
       for (final serviceInitializer in services) {
@@ -1199,6 +1205,108 @@ class UnifiedHordVoiceService {
 
   // Accès au service de transition pour les animations
   TransitionAnimationService get transitionService => _transitionService;
+
+  // Accès au service d'overlay spatial pour l'IA persistante
+  SpatialOverlayService get spatialOverlayService => _spatialOverlayService;
+
+  /// Active l'IA persistante en arrière-plan
+  Future<void> enablePersistentAI() async {
+    debugPrint('Activation IA persistante...');
+    try {
+      await _spatialOverlayService.enablePersistentMode();
+      debugPrint('IA persistante activée');
+    } catch (e) {
+      debugPrint('Erreur activation IA persistante: $e');
+      rethrow;
+    }
+  }
+
+  /// Désactive l'IA persistante
+  Future<void> disablePersistentAI() async {
+    debugPrint('Désactivation IA persistante...');
+    try {
+      await _spatialOverlayService.disablePersistentMode();
+      debugPrint('IA persistante désactivée');
+    } catch (e) {
+      debugPrint('Erreur désactivation IA persistante: $e');
+    }
+  }
+
+  /// Affiche l'avatar spatial en overlay
+  Future<void> showSpatialAvatar({
+    SpatialOverlayMode mode = SpatialOverlayMode.overlay,
+    SpatialOverlayConfig? config,
+  }) async {
+    debugPrint('Affichage avatar spatial...');
+    try {
+      await _spatialOverlayService.showSpatialOverlay(
+        mode: mode,
+        config: config,
+      );
+      debugPrint('Avatar spatial affiché');
+    } catch (e) {
+      debugPrint('Erreur affichage avatar spatial: $e');
+    }
+  }
+
+  /// Parle avec une émotion spécifique pour l'avatar spatial
+  Future<void> speakWithEmotion(
+    String text, {
+    String emotion = 'neutral',
+  }) async {
+    debugPrint('Parole avec émotion: $emotion - $text');
+
+    try {
+      // Notifier le début de la parole
+      _isSpeakingController.add(true);
+
+      // Configuration TTS selon l'émotion
+      switch (emotion) {
+        case 'welcome':
+          await _tts.setPitch(1.1);
+          await _tts.setSpeechRate(0.9);
+          break;
+        case 'goodbye':
+          await _tts.setPitch(0.9);
+          await _tts.setSpeechRate(0.8);
+          break;
+        case 'excited':
+          await _tts.setPitch(1.2);
+          await _tts.setSpeechRate(1.1);
+          break;
+        case 'calm':
+          await _tts.setPitch(0.95);
+          await _tts.setSpeechRate(0.85);
+          break;
+        default:
+          await _tts.setPitch(1.0);
+          await _tts.setSpeechRate(0.95);
+      }
+
+      // Parler le texte
+      await _tts.speak(text);
+
+      // Attendre la fin de la parole
+      await Future.delayed(Duration(milliseconds: text.length * 50));
+
+      // Notifier la fin de la parole
+      _isSpeakingController.add(false);
+    } catch (e) {
+      debugPrint('Erreur parole avec émotion: $e');
+      _isSpeakingController.add(false);
+    }
+  }
+
+  /// Masque l'avatar spatial
+  Future<void> hideSpatialAvatar() async {
+    debugPrint('Masquage avatar spatial...');
+    try {
+      await _spatialOverlayService.hideSpatialOverlay();
+      debugPrint('Avatar spatial masqué');
+    } catch (e) {
+      debugPrint('Erreur masquage avatar spatial: $e');
+    }
+  }
 
   void dispose() {
     _monitoringTimer?.cancel();

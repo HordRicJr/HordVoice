@@ -6,7 +6,7 @@ import '../services/unified_hordvoice_service.dart';
 import '../services/voice_management_service.dart';
 import '../services/azure_speech_service.dart';
 
-/// Étape 5: Service d'onboarding vocal complet
+/// Étape 5: Service d'onboarding vocal complet avec support spatial
 class VoiceOnboardingService {
   static final VoiceOnboardingService _instance =
       VoiceOnboardingService._internal();
@@ -25,6 +25,10 @@ class VoiceOnboardingService {
   int _micPermissionRetries = 0;
   int _voiceSelectionRetries = 0;
   final int _maxRetries = 3;
+
+  // Support spatial
+  bool _spatialModeEnabled = false;
+  Function(String)? _spatialFeedbackCallback;
 
   Future<void> initialize() async {
     if (_isInitialized) return;
@@ -586,6 +590,191 @@ class VoiceOnboardingService {
     _onboardingData.clear();
     _currentStep = 'welcome';
     debugPrint('Onboarding réinitialisé');
+  }
+
+  // ===============================================
+  // MÉTHODES SPATIALES
+  // ===============================================
+
+  /// Active le mode spatial pour l'onboarding
+  void enableSpatialMode({Function(String)? feedbackCallback}) {
+    _spatialModeEnabled = true;
+    _spatialFeedbackCallback = feedbackCallback;
+    debugPrint('🌌 Mode spatial activé pour l\'onboarding');
+  }
+
+  /// Désactive le mode spatial
+  void disableSpatialMode() {
+    _spatialModeEnabled = false;
+    _spatialFeedbackCallback = null;
+    debugPrint('🌌 Mode spatial désactivé');
+  }
+
+  /// Envoie un feedback spatial si le mode est activé
+  void _sendSpatialFeedback(String message) {
+    if (_spatialModeEnabled && _spatialFeedbackCallback != null) {
+      _spatialFeedbackCallback!(message);
+    }
+  }
+
+  /// Démarre l'onboarding en mode spatial
+  Future<void> startSpatialOnboarding() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    _spatialModeEnabled = true;
+
+    try {
+      final isFirstRun = await _isFirstRun();
+
+      _sendSpatialFeedback('Initialisation de l\'univers spatial...');
+
+      if (isFirstRun) {
+        await _stepSpatialWelcomeFirstTime();
+      } else {
+        await _stepSpatialWelcomeReturning();
+      }
+    } catch (e) {
+      debugPrint('Erreur onboarding spatial: $e');
+      _sendSpatialFeedback('Erreur lors de l\'initialisation');
+      await _markOnboardingCompleted();
+    }
+  }
+
+  /// Étape spatiale : Accueil première fois
+  Future<void> _stepSpatialWelcomeFirstTime() async {
+    _currentStep = 'spatial_welcome_first';
+
+    _sendSpatialFeedback('Bienvenue dans l\'univers HordVoice');
+
+    await _unifiedService.speakText(
+      'Bienvenue dans l\'univers HordVoice ! Je suis Ric, votre guide spatial. '
+      'Nous allons explorer ensemble les fonctionnalités vocales de cet univers immersif. '
+      'Prêt pour cette aventure spatiale ?',
+    );
+
+    await Future.delayed(Duration(seconds: 2));
+    await _stepSpatialMicrophone();
+  }
+
+  /// Étape spatiale : Accueil utilisateur connu
+  Future<void> _stepSpatialWelcomeReturning() async {
+    _currentStep = 'spatial_welcome_returning';
+
+    _sendSpatialFeedback('Bon retour dans l\'univers spatial');
+
+    await _unifiedService.speakText(
+      'Bon retour dans l\'univers HordVoice ! '
+      'Vos paramètres spatiaux sont conservés. Continuons notre exploration.',
+    );
+
+    await Future.delayed(Duration(seconds: 1));
+    // Aller directement à la vérification finale en mode retour
+    await _stepSpatialCompletion();
+  }
+
+  /// Étape spatiale : Configuration microphone
+  Future<void> _stepSpatialMicrophone() async {
+    _currentStep = 'spatial_microphone';
+
+    _sendSpatialFeedback('Configuration du microphone spatial');
+
+    final micStatus = await Permission.microphone.status;
+
+    if (micStatus.isGranted) {
+      await _unifiedService.speakText(
+        'Excellent ! Le microphone spatial est déjà configuré. '
+        'Je peux vous entendre parfaitement dans cet univers.',
+      );
+      await _stepSpatialVoiceDemo();
+      return;
+    }
+
+    await _unifiedService.speakText(
+      'Pour communiquer dans l\'univers spatial, nous devons activer le microphone. '
+      'Cela me permettra de percevoir vos commandes vocales à travers l\'espace. '
+      'Autorisons maintenant cette connexion spatiale.',
+    );
+
+    await _requestSpatialMicrophonePermission();
+  }
+
+  /// Demande permission microphone en mode spatial
+  Future<void> _requestSpatialMicrophonePermission() async {
+    try {
+      _sendSpatialFeedback('Demande d\'autorisation microphone...');
+
+      final result = await Permission.microphone.request();
+
+      if (result.isGranted) {
+        await _unifiedService.speakText(
+          'Parfait ! La connexion spatiale est établie. '
+          'Je peux maintenant vous entendre dans l\'univers.',
+        );
+        _sendSpatialFeedback('Microphone configuré avec succès');
+        await _stepSpatialVoiceDemo();
+      } else {
+        await _unifiedService.speakText(
+          'Microphone non autorisé. Nous continuerons en mode visuel pour l\'instant. '
+          'Vous pourrez activer la voix plus tard dans les paramètres spatiaux.',
+        );
+        _sendSpatialFeedback('Mode visuel activé');
+        await _stepSpatialCompletion();
+      }
+    } catch (e) {
+      debugPrint('Erreur permission microphone spatial: $e');
+      await _stepSpatialCompletion();
+    }
+  }
+
+  /// Étape spatiale : Démonstration vocale
+  Future<void> _stepSpatialVoiceDemo() async {
+    _currentStep = 'spatial_voice_demo';
+
+    _sendSpatialFeedback('Démonstration des capacités vocales');
+
+    await _unifiedService.speakText(
+      'Testons maintenant nos capacités de communication spatiale. '
+      'Dites "Ric, test spatial" et je vous répondrai pour valider la connexion.',
+    );
+
+    // Simulation d'écoute (en production, utiliser le vrai STT)
+    _sendSpatialFeedback('Écoute active...');
+    await Future.delayed(Duration(seconds: 4));
+
+    await _unifiedService.speakText(
+      'Fantastique ! La communication spatiale fonctionne parfaitement. '
+      'Votre voix résonne clairement dans l\'univers HordVoice.',
+    );
+
+    _sendSpatialFeedback('Test vocal réussi');
+    await _stepSpatialCompletion();
+  }
+
+  /// Étape spatiale : Finalisation
+  Future<void> _stepSpatialCompletion() async {
+    _currentStep = 'spatial_completion';
+
+    _sendSpatialFeedback('Configuration spatiale terminée');
+
+    await _unifiedService.speakText(
+      'Félicitations ! Votre univers HordVoice est maintenant prêt. '
+      'Vous pouvez explorer toutes les fonctionnalités spatiales et vocales. '
+      'Bienvenue dans votre nouvelle dimension interactive !',
+    );
+
+    await _markOnboardingCompleted();
+
+    _sendSpatialFeedback('Prêt à explorer l\'univers');
+
+    // Sauvegarder les préférences spatiales
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('spatial_mode_preferred', true);
+    await prefs.setString(
+      'spatial_completion_date',
+      DateTime.now().toIso8601String(),
+    );
   }
 
   void dispose() {

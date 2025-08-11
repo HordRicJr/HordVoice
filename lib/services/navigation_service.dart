@@ -34,30 +34,61 @@ class NavigationService {
   }
 
   Future<bool> _requestLocationPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Service de localisation désactivé');
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Permission de localisation refusée');
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        debugPrint('Service de localisation désactivé - mode fallback');
+        return false; // Au lieu de throw Exception
       }
-    }
 
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Permission de localisation refusée définitivement');
-    }
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          debugPrint('Permission de localisation refusée - mode fallback');
+          return false; // Au lieu de throw Exception
+        }
+      }
 
-    return true;
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint(
+          'Permission de localisation refusée définitivement - mode fallback',
+        );
+        return false; // Au lieu de throw Exception
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('Erreur permission géolocalisation: $e - mode fallback');
+      return false; // Mode de fallback
+    }
   }
 
   Future<Position> getCurrentLocation() async {
     if (!_isInitialized) throw Exception('Service non initialisé');
 
     try {
+      // Vérifier d'abord les permissions sans crash
+      bool hasPermission = await _requestLocationPermission();
+      if (!hasPermission) {
+        debugPrint(
+          'Pas de permission géolocalisation - utilisation position par défaut',
+        );
+        // Position par défaut (Paris) si pas de permission
+        return Position(
+          latitude: 48.8566,
+          longitude: 2.3522,
+          timestamp: DateTime.now(),
+          accuracy: 100.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+          altitudeAccuracy: 0.0,
+          headingAccuracy: 0.0,
+        );
+      }
+
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 10),
@@ -69,7 +100,21 @@ class NavigationService {
       if (_lastKnownPosition != null) {
         return _lastKnownPosition!;
       }
-      rethrow;
+
+      // Position par défaut si tout échoue
+      debugPrint('Utilisation position par défaut (Paris)');
+      return Position(
+        latitude: 48.8566,
+        longitude: 2.3522,
+        timestamp: DateTime.now(),
+        accuracy: 100.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
     }
   }
 

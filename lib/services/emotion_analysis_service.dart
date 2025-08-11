@@ -11,8 +11,8 @@ class EmotionAnalysisService {
   final EnvironmentConfig _envConfig = EnvironmentConfig();
 
   // Service caméra pour analyse visuelle
-  final CameraEmotionAnalysisService _cameraService =
-      CameraEmotionAnalysisService();
+  // Service caméra (lazy initialization pour éviter warnings système)
+  CameraEmotionAnalysisService? _cameraService;
 
   // Étape 7: Smoothing et cache d'émotion
   String _lastEmotion = 'neutral';
@@ -31,12 +31,19 @@ class EmotionAnalysisService {
     _isInitialized = true;
     debugPrint('EmotionAnalysisService initialisé avec analyse multimodale');
 
-    // Initialiser le service caméra (optionnel)
+    // Service caméra disponible en lazy loading
+    debugPrint('CameraEmotionAnalysisService disponible en mode lazy loading');
+  }
+
+  /// Initialise la caméra seulement si nécessaire
+  Future<void> initializeCameraIfNeeded() async {
+    _cameraService ??= CameraEmotionAnalysisService();
     try {
-      await _cameraService.initialize();
-      debugPrint('Service caméra intégré pour analyse émotionnelle');
+      await _cameraService!.initialize();
+      debugPrint('Service caméra initialisé avec succès');
     } catch (e) {
-      debugPrint('Service caméra non disponible: $e');
+      debugPrint('Erreur initialisation caméra: $e');
+      _cameraService = null;
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../widgets/spacial_avatar_view.dart';
+import 'package:hordvoice/views/home_view.dart';
+import 'package:hordvoice/widgets/spacial_avatar_view.dart';
 import '../services/voice_session_manager.dart';
 import '../services/emotional_avatar_service.dart';
 
@@ -74,6 +75,17 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
     debugPrint('✨ Avatar spatial activé et prêt');
   }
 
+  /// Navigue vers l'interface HomeView amelioree
+  void _navigateToHome() {
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, _) =>
+            FadeTransition(opacity: animation, child: const HomeView()),
+        transitionDuration: const Duration(milliseconds: 1500),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,10 +95,13 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
         builder: (context, child) {
           return Stack(
             children: [
-              // Vue spatiale principale
-              Opacity(
-                opacity: _fadeAnimation.value,
-                child: const SpacialAvatarView(),
+              // Vue spatiale principale avec interaction tactile
+              GestureDetector(
+                onTap: _navigateToHome,
+                child: Opacity(
+                  opacity: _fadeAnimation.value,
+                  child: const SpacialAvatarView(),
+                ),
               ),
 
               // Overlay d'initialisation
@@ -170,7 +185,7 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Touchez l\'avatar pour interagir • Dites "Salut Ric" pour parler',
+                  'Touchez l\'avatar pour interagir • Dites "Accueil" pour aller à l\'accueil',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),

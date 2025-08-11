@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import 'register_view.dart';
 import 'home_view.dart';
+import 'spatial_voice_onboarding_view.dart';
 
 /// Vue de connexion IA vocale avec design spécifié
 class LoginView extends StatefulWidget {
@@ -89,10 +91,28 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       );
 
       if (success && mounted) {
-        // Navigation vers HomeView
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeView()),
-        );
+        // Vérifier si l'onboarding spatial a été complété
+        final prefs = await SharedPreferences.getInstance();
+        final onboardingCompleted =
+            prefs.getBool('onboarding_completed') ?? false;
+
+        if (!onboardingCompleted) {
+          // Première connexion → Onboarding spatial
+          Navigator.of(context).pushReplacement(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, _) => FadeTransition(
+                opacity: animation,
+                child: const SpatialVoiceOnboardingView(),
+              ),
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+          );
+        } else {
+          // Utilisateur existant → HomeView
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeView()),
+          );
+        }
       } else {
         setState(() {
           _emailError = 'Email ou mot de passe incorrect';

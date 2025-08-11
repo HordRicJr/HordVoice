@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import 'home_view.dart';
+import 'login_view.dart';
+import 'spatial_voice_onboarding_view.dart';
 
 /// Vue d'inscription avec design cohérent avec LoginView
 class RegisterView extends StatefulWidget {
@@ -107,10 +110,28 @@ class _RegisterViewState extends State<RegisterView>
       );
 
       if (success && mounted) {
-        // Navigation vers HomeView après inscription réussie
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeView()),
-        );
+        // Vérifier si c'est la première inscription (onboarding nécessaire)
+        final prefs = await SharedPreferences.getInstance();
+        final onboardingCompleted =
+            prefs.getBool('onboarding_completed') ?? false;
+
+        if (!onboardingCompleted) {
+          // Première inscription → Onboarding spatial
+          Navigator.of(context).pushReplacement(
+            PageRouteBuilder(
+              pageBuilder: (context, animation, _) => FadeTransition(
+                opacity: animation,
+                child: const SpatialVoiceOnboardingView(),
+              ),
+              transitionDuration: const Duration(milliseconds: 800),
+            ),
+          );
+        } else {
+          // Utilisateur existant → HomeView
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomeView()),
+          );
+        }
       } else {
         setState(() {
           _generalError = 'Erreur lors de l\'inscription';
@@ -173,14 +194,7 @@ class _RegisterViewState extends State<RegisterView>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: const Color(0xFF007AFF)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -598,10 +612,12 @@ class _RegisterViewState extends State<RegisterView>
   Widget _buildLoginLink() {
     return TextButton(
       onPressed: () {
-        Navigator.of(context).pop();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const LoginView()),
+        );
       },
       child: Text(
-        'Déjà un compte ? Connectez-vous',
+        'Deja un compte ? Connectez-vous',
         style: TextStyle(
           color: const Color(0xFF007AFF),
           fontSize: 16,
