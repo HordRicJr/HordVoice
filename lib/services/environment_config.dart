@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Service de configuration environnement avec chargement sécurisé depuis .env
 class EnvironmentConfig {
@@ -7,7 +7,6 @@ class EnvironmentConfig {
   factory EnvironmentConfig() => _instance;
   EnvironmentConfig._internal();
 
-  Map<String, String> _config = {};
   bool _isLoaded = false;
 
   /// Charge la configuration depuis le fichier .env
@@ -15,146 +14,56 @@ class EnvironmentConfig {
     if (_isLoaded) return;
 
     try {
-      // En développement, charger depuis .env
-      if (kDebugMode) {
-        await _loadFromEnvFile();
-      } else {
-        // En production, utiliser directement les clés hardcodées
-        // car les variables d'environnement système ne sont pas disponibles
-        _loadHardcodedKeys();
-      }
-
+      await dotenv.load(fileName: ".env");
       _isLoaded = true;
+      
       if (kDebugMode) {
-        debugPrint('Configuration environnement chargée avec succès');
+        debugPrint('Configuration environnement chargée avec succès depuis .env');
       }
-    } catch (e) {
-      // En cas d'erreur, utiliser les clés hardcodées
-      if (kDebugMode) {
-        debugPrint(
-          'Erreur chargement configuration, utilisation des clés de fallback: $e',
-        );
-      }
-      _loadHardcodedKeys();
-      _isLoaded = true; // Marquer comme chargé même avec fallback
-    }
-  }
-
-  /// Charge depuis le fichier .env local
-  Future<void> _loadFromEnvFile() async {
-    try {
-      final envFile = File('.env');
-      if (!await envFile.exists()) {
-        // Si le fichier .env n'existe pas, utiliser les clés hardcodées
-        _loadHardcodedKeys();
-        return;
-      }
-
-      final contents = await envFile.readAsString();
-      final lines = contents.split('\n');
-
-      for (String line in lines) {
-        line = line.trim();
-        if (line.isEmpty || line.startsWith('#')) continue;
-
-        final parts = line.split('=');
-        if (parts.length >= 2) {
-          final key = parts[0].trim();
-          final value = parts.sublist(1).join('=').trim();
-          _config[key] = value;
-        }
-      }
-
-      // Vérifier si les clés importantes sont chargées, sinon utiliser hardcodées
+      
+      // Vérifier si les clés essentielles sont présentes
       if (!_hasEssentialKeys()) {
-        _loadHardcodedKeys();
+        throw Exception('Clés essentielles manquantes dans le fichier .env');
       }
+      
     } catch (e) {
-      // En cas d'erreur, utiliser les clés hardcodées
-      _loadHardcodedKeys();
+      if (kDebugMode) {
+        debugPrint('Erreur chargement .env');
+        debugPrint('Assurez-vous d\'avoir un fichier .env avec toutes les clés requises');
+      }
+      throw Exception('Configuration environnement impossible à charger. Vérifiez votre fichier .env.');
     }
-  }
-
-  /// Charge les clés par défaut (placeholders uniquement - utiliser .env pour les vraies clés)
-  void _loadHardcodedKeys() {
-    _config.addAll({
-      // Azure Speech Services
-      'AZURE_SPEECH_KEY': 'your_azure_speech_key_here',
-      'AZURE_SPEECH_REGION': 'eastus',
-      'AZURE_SPEECH_ENDPOINT': 'https://eastus.api.cognitive.microsoft.com/',
-      
-      // Azure Translator
-      'AZURE_TRANSLATOR_KEY': 'your_azure_translator_key_here',
-      'AZURE_TRANSLATOR_ENDPOINT': 'https://api.cognitive.microsofttranslator.com/',
-      
-      // Azure OpenAI
-      'AZURE_OPENAI_KEY': 'your_azure_openai_key_here',
-      'AZURE_OPENAI_ENDPOINT': 'https://your-instance.openai.azure.com/',
-      'AZURE_OPENAI_DEPLOYMENT': 'chat',
-      
-      // Azure Language Services
-      'AZURE_LANGUAGE_KEY': 'your_azure_language_key_here',
-      'AZURE_LANGUAGE_ENDPOINT': 'https://your-language-service.cognitiveservices.azure.com/',
-      'AZURE_LANGUAGE_REGION': 'eastus',
-      
-      // Azure Machine Learning
-      'AZURE_ML_KEY': 'your_azure_ml_key_here',
-      'AZURE_ML_ENDPOINT': 'https://your-ml-workspace.vault.azure.net',
-      
-      // Azure Form Recognizer
-      'AZURE_FORM_RECOGNIZER_KEY': 'your_azure_form_recognizer_key_here',
-      'AZURE_FORM_RECOGNIZER_ENDPOINT': 'https://your-form-recognizer.cognitiveservices.azure.com/',
-      'AZURE_FORM_RECOGNIZER_REGION': 'eastus',
-      
-      // Azure Maps
-      'AZURE_MAPS_KEY': 'your_azure_maps_key_here',
-      'AZURE_MAPS_CLIENT_ID': 'your_azure_maps_client_id_here',
-      'AZURE_MAPS_ENDPOINT': 'https://atlas.microsoft.com',
-      
-      // Supabase
-      'SUPABASE_URL': 'https://your-project.supabase.co',
-      'SUPABASE_ANON_KEY': 'your_supabase_anon_key_here',
-      
-      // External APIs
-      'OPENWEATHERMAP_API_KEY': 'your_openweathermap_api_key_here',
-      'OPENWEATHERMAP_ENDPOINT': 'https://api.openweathermap.org/data/2.5',
-      
-      // Configuration
-      'DEBUG_MODE': 'false',
-      'LOG_LEVEL': 'info',
-      
-      // Clés de sécurité
-      'MASTER_SECRET_KEY': 'your_master_secret_key_here',
-      'JWT_SECRET': 'your_jwt_secret_here',
-      'ENCRYPTION_KEY': 'your_encryption_key_here',
-    });
   }
 
   /// Vérifie si les clés essentielles sont présentes
   bool _hasEssentialKeys() {
     final essentialKeys = [
       'AZURE_SPEECH_KEY',
+      'AZURE_SPEECH_REGION',
       'AZURE_OPENAI_KEY',
+      'AZURE_OPENAI_ENDPOINT',
       'SUPABASE_URL',
-      'OPENWEATHERMAP_API_KEY',
+      'SUPABASE_ANON_KEY',
     ];
 
-    return essentialKeys.every(
-      (key) =>
-          _config.containsKey(key) &&
-          _config[key]?.isNotEmpty == true &&
-          !_config[key]!.contains('your_'),
-    );
+    for (String key in essentialKeys) {
+      final value = dotenv.env[key];
+      if (value == null || value.isEmpty || value.contains('your_')) {
+        if (kDebugMode) {
+          debugPrint('Clé manquante ou invalide');
+        }
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Obtient une valeur de configuration
   String? getValue(String key) {
     if (!_isLoaded) {
-      throw Exception(
-        'Configuration non chargée. Appelez loadConfig() d\'abord.',
-      );
+      throw Exception('Configuration non chargée. Appelez loadConfig() d\'abord.');
     }
-    return _config[key];
+    return dotenv.env[key];
   }
 
   /// Obtient une valeur de configuration avec valeur par défaut
@@ -193,11 +102,14 @@ class EnvironmentConfig {
   String? get azureSpeechRegion => getValue('AZURE_SPEECH_REGION');
   String? get azureSpeechEndpoint => getValue('AZURE_SPEECH_ENDPOINT');
 
-  // Azure OpenAI
+  // Azure OpenAI / AI Foundry
   String? get azureOpenAIKey => getValue('AZURE_OPENAI_KEY');
   String? get azureOpenAIEndpoint => getValue('AZURE_OPENAI_ENDPOINT');
   String get azureOpenAIDeployment =>
-      getValueOrDefault('AZURE_OPENAI_DEPLOYMENT', 'chat');
+      getValueOrDefault('AZURE_OPENAI_DEPLOYMENT', 'gpt-4');
+  String? get azureAIFoundryProject => getValue('AZURE_AI_FOUNDRY_PROJECT');
+  String get azureOpenAIApiVersion =>
+      getValueOrDefault('AZURE_OPENAI_API_VERSION', '2024-05-01-preview');
 
   // Azure Translator
   String? get azureTranslatorKey => getValue('AZURE_TRANSLATOR_KEY');
@@ -304,28 +216,28 @@ class EnvironmentConfig {
 
     if (debugMode) {
       debugPrint(
-        'Azure Speech: ${hasValidValue('AZURE_SPEECH_KEY') ? '✓' : '✗'}',
+        'Azure Speech: ${hasValidValue('AZURE_SPEECH_KEY') ? 'OK' : 'MANQUANT'}',
       );
       debugPrint(
-        'Azure OpenAI: ${hasValidValue('AZURE_OPENAI_KEY') ? '✓' : '✗'}',
+        'Azure OpenAI: ${hasValidValue('AZURE_OPENAI_KEY') ? 'OK' : 'MANQUANT'}',
       );
       debugPrint(
-        'Azure Translator: ${hasValidValue('AZURE_TRANSLATOR_KEY') ? '✓' : '✗'}',
+        'Azure Translator: ${hasValidValue('AZURE_TRANSLATOR_KEY') ? 'OK' : 'MANQUANT'}',
       );
       debugPrint(
-        'Azure Language: ${hasValidValue('AZURE_LANGUAGE_KEY') ? '✓' : '✗'}',
+        'Azure Language: ${hasValidValue('AZURE_LANGUAGE_KEY') ? 'OK' : 'MANQUANT'}',
       );
-      debugPrint('Azure ML: ${hasValidValue('AZURE_ML_KEY') ? '✓' : '✗'}');
+      debugPrint('Azure ML: ${hasValidValue('AZURE_ML_KEY') ? 'OK' : 'MANQUANT'}');
       debugPrint(
-        'Azure Form Recognizer: ${hasValidValue('AZURE_FORM_RECOGNIZER_KEY') ? '✓' : '✗'}',
+        'Azure Form Recognizer: ${hasValidValue('AZURE_FORM_RECOGNIZER_KEY') ? 'OK' : 'MANQUANT'}',
       );
-      debugPrint('Azure Maps: ${hasValidValue('AZURE_MAPS_KEY') ? '✓' : '✗'}');
-      debugPrint('Supabase: ${hasValidValue('SUPABASE_URL') ? '✓' : '✗'}');
+      debugPrint('Azure Maps: ${hasValidValue('AZURE_MAPS_KEY') ? 'OK' : 'MANQUANT'}');
+      debugPrint('Supabase: ${hasValidValue('SUPABASE_URL') ? 'OK' : 'MANQUANT'}');
       debugPrint(
-        'Google Maps: ${hasValidValue('GOOGLE_MAPS_API_KEY') ? '✓' : '✗'}',
+        'Google Maps: ${hasValidValue('GOOGLE_MAPS_API_KEY') ? 'OK' : 'MANQUANT'}',
       );
       debugPrint(
-        'Weather: ${hasValidValue('OPENWEATHERMAP_API_KEY') ? '✓' : '✗'}',
+        'Weather: ${hasValidValue('OPENWEATHERMAP_API_KEY') ? 'OK' : 'MANQUANT'}',
       );
     }
 

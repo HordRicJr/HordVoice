@@ -39,16 +39,26 @@ class AzureOpenAIService {
     debugPrint('🛡️ Circuit breaker Azure OpenAI configuré');
   }
 
-  /// Construit l'URL pour les appels Azure OpenAI
+  /// Construit l'URL pour les appels Azure AI Foundry
   String _buildOpenAIUrl() {
     final endpoint = _envConfig.azureOpenAIEndpoint!;
-    final deployment = _envConfig.azureOpenAIDeployment;
+    final apiVersion = _envConfig.azureOpenAIApiVersion;
 
     // S'assurer que l'endpoint se termine par "/"
     final cleanEndpoint = endpoint.endsWith('/') ? endpoint : '$endpoint/';
 
-    // URL complète au format Azure AI Foundry
-    return '${cleanEndpoint}openai/deployments/$deployment/chat/completions?api-version=2024-02-15-preview';
+    // URL pour Azure AI Foundry Project
+    if (endpoint.contains('/api/projects/')) {
+      // Format: https://resource.services.ai.azure.com/api/projects/ProjectName/chat/completions
+      return '${cleanEndpoint}chat/completions?api-version=$apiVersion';
+    } else if (endpoint.contains('.services.ai.azure.com')) {
+      // Format nouveau Azure AI Inference: https://resource.services.ai.azure.com/models/chat/completions
+      return '${cleanEndpoint}models/chat/completions?api-version=$apiVersion';
+    } else {
+      // Format ancien Azure OpenAI: https://resource.openai.azure.com/openai/deployments/deployment/chat/completions
+      final deployment = _envConfig.azureOpenAIDeployment;
+      return '${cleanEndpoint}openai/deployments/$deployment/chat/completions?api-version=$apiVersion';
+    }
   }
 
   /// Obtient les headers pour les appels Azure OpenAI
@@ -57,6 +67,19 @@ class AzureOpenAIService {
       'Content-Type': 'application/json',
       'api-key': _envConfig.azureOpenAIKey!,
     };
+  }
+
+  /// Construit le payload de base avec le modèle
+  Map<String, dynamic> _buildBasePayload() {
+    final payload = <String, dynamic>{};
+    
+    // Pour Azure AI Foundry Projects, le modèle doit être spécifié
+    final endpoint = _envConfig.azureOpenAIEndpoint!;
+    if (endpoint.contains('/api/projects/') || endpoint.contains('.services.ai.azure.com')) {
+      payload['model'] = _envConfig.azureOpenAIDeployment;
+    }
+    
+    return payload;
   }
 
   /// Analyse l'intention de l'utilisateur
@@ -74,6 +97,7 @@ class AzureOpenAIService {
               Uri.parse(_buildOpenAIUrl()),
               headers: _buildHeaders(),
               body: jsonEncode({
+                ..._buildBasePayload(),
                 'messages': [
                   {
                     'role': 'system',
@@ -186,6 +210,7 @@ class AzureOpenAIService {
         Uri.parse(_buildOpenAIUrl()),
         headers: _buildHeaders(),
         body: jsonEncode({
+          ..._buildBasePayload(),
           'messages': messages,
           'max_tokens': 150,
           'temperature': 0.7,
@@ -229,6 +254,7 @@ class AzureOpenAIService {
         Uri.parse(_buildOpenAIUrl()),
         headers: _buildHeaders(),
         body: jsonEncode({
+          ..._buildBasePayload(),
           'messages': [
             {'role': 'system', 'content': systemPrompt},
             {'role': 'user', 'content': userInput},
@@ -261,6 +287,7 @@ class AzureOpenAIService {
         Uri.parse(_buildOpenAIUrl()),
         headers: _buildHeaders(),
         body: jsonEncode({
+          ..._buildBasePayload(),
           'messages': [
             {
               'role': 'system',
@@ -306,6 +333,7 @@ class AzureOpenAIService {
         Uri.parse(_buildOpenAIUrl()),
         headers: _buildHeaders(),
         body: jsonEncode({
+          ..._buildBasePayload(),
           'messages': [
             {
               'role': 'system',
