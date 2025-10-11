@@ -348,6 +348,25 @@ class _HomeViewState extends ConsumerState<HomeView>
       gradient: RadialGradient(
         center: Alignment.center,
         radius: 1.5,
+                      // Logo with localized title
+                      ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [
+                            Color(0xFF64B5F6),
+                            Color(0xFF42A5F5),
+                            Color(0xFF1976D2),
+                          ],
+                        ).createShader(bounds),
+                        child: Text(
+                          // Use localized app title if available
+                          AppLocalizations.of(context)?.appTitle ?? 'HordVoice',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
         colors: [
           Color(0xFF1A1A3A), // Centre plus clair
           Color(0xFF0D0D1F), // Bords plus sombres
@@ -378,6 +397,15 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget _buildSpatialHeader() {
     return FadeTransition(
       opacity: _fadeAnimation,
+                      // Settings button
+                      IconButton(
+                        icon: const Icon(Icons.settings, color: Colors.white),
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const SettingsView()),
+                          );
+                        },
+                      ),
       child: Container(
         padding: const EdgeInsets.all(20),
         child: Row(

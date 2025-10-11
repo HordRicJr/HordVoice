@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import '../localization/language_resolver.dart';
 import 'dart:convert';
 import 'environment_config.dart';
 
@@ -156,12 +157,15 @@ class NavigationService {
       Position currentPosition = await getCurrentLocation();
 
       // Utiliser Azure Maps API au lieu de Google Maps
+      final lang = LanguageResolver.toBcp47(
+        (await LanguageResolver.getSavedLanguageCode()),
+      );
       final url = Uri.parse(
         'https://atlas.microsoft.com/route/directions/json'
         '?api-version=1.0'
         '&subscription-key=${_envConfig.googleMapsApiKey ?? ""}'
         '&query=${currentPosition.latitude},${currentPosition.longitude}:${Uri.encodeComponent(destination)}'
-        '&language=fr-FR',
+        '&language=$lang',
       );
 
       final response = await http.get(url);
@@ -275,6 +279,9 @@ class NavigationService {
       Position currentPosition = await getCurrentLocation();
 
       // Utiliser Azure Maps Search API
+      final lang = LanguageResolver.toBcp47(
+        (await LanguageResolver.getSavedLanguageCode()),
+      );
       final url = Uri.parse(
         'https://atlas.microsoft.com/search/nearby/json'
         '?api-version=1.0'
@@ -283,7 +290,7 @@ class NavigationService {
         '&lon=${currentPosition.longitude}'
         '&radius=$radius'
         '&categorySet=${_mapPlaceTypeToAzure(type)}'
-        '&language=fr-FR',
+        '&language=$lang',
       );
 
       final response = await http.get(url);

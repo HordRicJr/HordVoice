@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../localization/language_resolver.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_session/audio_session.dart';
 // import 'package:record/record.dart'; // TEMPORAIREMENT DÉSACTIVÉ POUR LE BUILD
@@ -223,7 +224,8 @@ class WakeWordPipelineNotifier extends StateNotifier<WakeWordPipelineState> {
 
   Future<void> _initializeTTS() async {
     _tts = FlutterTts();
-    await _tts.setLanguage('fr-FR');
+  final ttsLang = await LanguageResolver.getTtsLanguage();
+  await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.8);
     await _tts.setVolume(1.0);
     await _tts.setPitch(1.0);

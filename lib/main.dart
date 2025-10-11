@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,6 +26,9 @@ import 'views/home_view.dart';
 import 'views/permissions_view.dart';
 import 'views/login_view.dart';
 import 'views/spatial_voice_onboarding_view.dart';
+import 'views/settings_view.dart';
+import 'localization/locale_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' as rv;
 
 void main() async {
   // Initialisation Flutter
@@ -70,12 +75,22 @@ class HordVoiceApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp(
       title: 'HordVoice v2.0',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       home: const AppInitializer(),
       builder: (context, child) {
         // Gestion des erreurs UI globales
@@ -134,7 +149,7 @@ class _AppInitializerState extends State<AppInitializer>
     try {
       // Étape 1: Configuration de l'environnement
       setState(() {
-        _statusMessage = 'Configuration de l\'environnement...';
+        _statusMessage = AppLocalizations.of(context)?.environmentConfig ?? 'Configuring environment...';
       });
       await Future.delayed(const Duration(milliseconds: 500));
 
@@ -143,7 +158,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 2: Initialisation de Supabase
       setState(() {
-        _statusMessage = 'Initialisation de la base de données...';
+        _statusMessage = AppLocalizations.of(context)?.dbInitializing ?? 'Initializing database...';
       });
       await Future.delayed(const Duration(milliseconds: 500));
 
@@ -173,7 +188,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 3: Vérification de l'authentification RAPIDE
       setState(() {
-        _statusMessage = 'Vérification de l\'authentification...';
+        _statusMessage = AppLocalizations.of(context)?.authChecking ?? 'Checking authentication...';
       });
       await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
@@ -206,7 +221,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 4: Vérification des permissions essentielles RAPIDE
       setState(() {
-        _statusMessage = 'Vérification des permissions...';
+        _statusMessage = AppLocalizations.of(context)?.permissionsChecking ?? 'Checking permissions...';
       });
       await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
@@ -241,7 +256,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 3: Initialisation LÉGÈRE des services principaux
       setState(() {
-        _statusMessage = 'Préparation de l\'IA vocale...';
+        _statusMessage = AppLocalizations.of(context)?.finalizing ?? 'Finalizing...';
       });
       await Future.delayed(const Duration(milliseconds: 100)); // 500ms -> 100ms
 
@@ -307,7 +322,8 @@ class _AppInitializerState extends State<AppInitializer>
 
       setState(() {
         _hasError = true;
-        _errorMessage = 'Erreur lors de l\'initialisation: ${e.toString()}';
+        final template = AppLocalizations.of(context)?.errorInitialization ?? 'Error during initialization: {error}';
+        _errorMessage = template.replaceFirst('{error}', e.toString());
       });
     }
   }

@@ -1,0 +1,22 @@
+{
+  "@@locale": "ar",
+  "appTitle": "HordVoice",
+  "initializing": "جارٍ تهيئة HordVoice...",
+  "environmentConfig": "جارٍ تكوين البيئة...",
+  "dbInitializing": "جارٍ تهيئة قاعدة البيانات...",
+  "authChecking": "جارٍ التحقق من المصادقة...",
+  "permissionsChecking": "جارٍ التحقق من الأذونات...",
+  "finalizing": "جارٍ الإنهاء...",
+  "homeWelcome": "مرحبًا بك في HordVoice",
+  "settings": "الإعدادات",
+  "language": "اللغة",
+  "selectLanguage": "اختر اللغة",
+  "langEnglish": "الإنجليزية",
+  "langFrench": "الفرنسية",
+  "langSpanish": "الإسبانية",
+  "langGerman": "الألمانية",
+  "langArabic": "العربية",
+  "listenHint": "قل 'Hey Ric' للبدء بالاستماع",
+  "errorInitialization": "خطأ أثناء التهيئة: {error}",
+  "retry": "أعد المحاولة"
+}

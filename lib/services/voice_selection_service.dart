@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../localization/language_resolver.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/voice_models.dart';
 import 'azure_speech_service.dart';
@@ -158,7 +159,10 @@ class VoiceSelectionService {
 
   /// Configure le TTS natif pour une voix donnée
   Future<void> _configureNativeTts(VoiceOption voice) async {
-    await _tts.setLanguage(voice.language == 'fr' ? 'fr-FR' : 'en-US');
+    // If voice.language is a short code like 'fr', map to BCP-47; otherwise assume it's already BCP-47
+    final code = voice.language.length == 2 ? voice.language : null;
+    final lang = code != null ? LanguageResolver.toBcp47(code) : voice.language;
+    await _tts.setLanguage(lang);
 
     // Adapter les paramètres selon le style
     switch (voice.style) {

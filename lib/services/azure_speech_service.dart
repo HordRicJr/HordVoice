@@ -94,6 +94,27 @@ class AzureSpeechService {
   bool get isListening => _isListening;
   String get currentLanguage => _currentLanguage;
 
+  /// Définit la langue courante pour la reconnaissance (ex: 'en-US', 'fr-FR').
+  /// Met à jour le champ interne et tente de notifier le SDK natif via Platform Channel.
+  Future<void> setCurrentLanguage(String language) async {
+    if (language.isEmpty) return;
+    debugPrint('Azure Speech - Changement de langue: $language');
+    _currentLanguage = language;
+
+    // Tenter de notifier le SDK natif si le Platform Channel est disponible.
+    try {
+      final MethodChannel channel = MethodChannel('azure_speech_recognition');
+      await channel.invokeMethod('setRecognitionLanguage', {
+        'language': _currentLanguage,
+      });
+      debugPrint('Azure Speech - SDK natif notifié du changement de langue');
+    } catch (e) {
+      debugPrint('Azure Speech - Impossible de notifier le SDK natif du changement de langue: $e');
+      // Ce n'est pas bloquant; le champ interne est mis à jour et sera utilisé
+      // lors du prochain démarrage de reconnaissance.
+    }
+  }
+
   /// Initialise le service Azure Speech avec l'API réelle
   Future<void> initialize() async {
     if (_isInitialized) {

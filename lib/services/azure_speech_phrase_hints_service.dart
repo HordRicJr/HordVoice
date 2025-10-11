@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
+import '../localization/language_resolver.dart';
 
 /// Service COMPLET pour envoyer les Phrase Hints au SDK Azure Speech natif Android
 /// Couvre TOUTES les fonctionnalités de HordVoice pour une précision maximale
@@ -479,8 +480,17 @@ class AzureSpeechPhraseHintsService {
 
   /// Configure TOUTES les phrases de TOUTES les catégories - RECOMMANDÉ
   static Future<bool> configureAllHints() async {
-    final allPhrases = [
-      ..._wakeWordPhrases,
+    // Resolve current app language to optionally tailor phrases
+    final code = await LanguageResolver.getSavedLanguageCode();
+
+    // Basic per-language adjustments (French phrases already dominant here)
+    // For other languages, we can fallback to English-friendly activations and generics.
+    final List<String> enActivations = [
+      'Hey Ric', 'Hello Ric', 'Rick', 'Assistant', 'HordVoice', 'Hord Voice'
+    ];
+
+    // Build base set (existing phrases are primarily French)
+    final base = [
       ..._systemCommandPhrases,
       ..._navigationPhrases,
       ..._weatherPhrases,
@@ -496,8 +506,19 @@ class AzureSpeechPhraseHintsService {
       ..._secretCommandPhrases,
     ];
 
-    debugPrint('🎯 Configuration COMPLÈTE: ${allPhrases.length} phrases hints');
-    return await _configurePhraseHints(allPhrases, 'complete_hordvoice');
+    List<String> allPhrases;
+    switch (code) {
+      case 'fr':
+        allPhrases = [..._wakeWordPhrases, ...base];
+        break;
+      default:
+        // For non-French, prefer English activations and keep the rest to still help the engine.
+        allPhrases = [...enActivations, ...base];
+        break;
+    }
+
+    debugPrint('🎯 Configuration COMPLÈTE (${code}) : ${allPhrases.length} phrases hints');
+    return await _configurePhraseHints(allPhrases, 'complete_hordvoice_$code');
   }
 
   /// Efface toutes les phrases configurées
