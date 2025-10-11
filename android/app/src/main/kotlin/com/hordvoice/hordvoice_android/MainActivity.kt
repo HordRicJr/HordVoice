@@ -22,8 +22,8 @@ class MainActivity : FlutterActivity() {
     private var speechRecognizer: SpeechRecognizer? = null
     private var phraseListGrammar: PhraseListGrammar? = null
     
-    // Azure Speech Service credentials - Vraies clés HordVoice
-    private val SPEECH_SUBSCRIPTION_KEY = "BWkbBCvtCTaZB6ijvlJsYgFgSCSLxo3ARJp8835NL3fE24vrDcRIJQQJ99BHACYeBjFXJ3w3AAAYACOGFcSl"
+    // Azure Speech Service credentials - Remplacez par vos vraies clés
+    private val SPEECH_SUBSCRIPTION_KEY = "your_azure_speech_key_here"
     private val SPEECH_REGION = "eastus"
     
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {

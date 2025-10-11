@@ -15,3 +15,9 @@ x86/
 *.[Cc]ache
 # but keep track of directories ending in .cache
 !*.[Cc]ache/
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development

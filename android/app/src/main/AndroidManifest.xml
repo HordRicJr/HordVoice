@@ -191,7 +191,7 @@
         <!-- Azure Speech Service Configuration -->
         <meta-data
             android:name="com.microsoft.cognitiveservices.speech.subscription_key"
-            android:value="BWkbBCvtCTaZB6ijvlJsYgFgSCSLxo3ARJp8835NL3fE24vrDcRIJQQJ99BHACYeBjFXJ3w3AAAYACOGFcSl" />
+            android:value="your_azure_speech_key_here" />
         <meta-data
             android:name="com.microsoft.cognitiveservices.speech.region"
             android:value="eastus" />

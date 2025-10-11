@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
+import 'environment_config.dart';
 
 /// Service de commandes secrètes pour HordVoice IA
 /// Fonctionnalité 6: Commandes secrètes
@@ -19,11 +20,16 @@ class SecretCommandsService {
   String? _currentSecretSession;
   int _failedAttempts = 0;
   DateTime? _lastFailedAttempt;
+  
+  // Configuration d'environnement
+  final EnvironmentConfig _envConfig = EnvironmentConfig();
 
   // Configuration de sécurité
   static const int maxFailedAttempts = 3;
   static const Duration lockoutDuration = Duration(minutes: 5);
-  static const String masterKey = 'hordvoice_secret_2024';
+  
+  // Master key sera chargée depuis .env
+  String get masterKey => _envConfig.getValue('MASTER_SECRET_KEY') ?? 'default_fallback_key';
 
   // Commandes secrètes prédéfinies
   late Map<String, SecretCommand> _secretCommands;
@@ -48,6 +54,9 @@ class SecretCommandsService {
 
     try {
       debugPrint('Initialisation SecretCommandsService...');
+
+      // Charger la configuration d'environnement
+      await _envConfig.loadConfig();
 
       await _loadSecretCommands();
       await _loadSecurityState();

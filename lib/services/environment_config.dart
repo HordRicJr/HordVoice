@@ -75,46 +75,58 @@ class EnvironmentConfig {
     }
   }
 
-  /// Charge les clés hardcodées pour HordVoice
+  /// Charge les clés par défaut (placeholders uniquement - utiliser .env pour les vraies clés)
   void _loadHardcodedKeys() {
     _config.addAll({
-      'AZURE_SPEECH_KEY':
-          'BWkbBCvtCTaZB6ijvlJsYgFgSCSLxo3ARJp8835NL3fE24vrDcRIJQQJ99BHACYeBjFXJ3w3AAAYACOGFcSl',
+      // Azure Speech Services
+      'AZURE_SPEECH_KEY': 'your_azure_speech_key_here',
       'AZURE_SPEECH_REGION': 'eastus',
       'AZURE_SPEECH_ENDPOINT': 'https://eastus.api.cognitive.microsoft.com/',
-      'AZURE_TRANSLATOR_KEY':
-          'C6Uv167mxzRIjxRIVhxk3T0Bl7FmeMWqALl8zSOeAoYpBgchHnq6JQQJ99BHAC5RqLJXJ3w3AAAbACOGHNU2',
-      'AZURE_TRANSLATOR_ENDPOINT':
-          'https://api.cognitive.microsofttranslator.com/',
-      'AZURE_OPENAI_KEY':
-          'EplfGAB4RFtjtf3aempKYJvD2cO5YZoEXMgNVSTSMOzfLPci1eU2JQQJ99BHACHYHv6XJ3w3AAAAACOGuq1f',
-      'AZURE_OPENAI_ENDPOINT':
-          'https://assou-me4m6orw-eastus2.openai.azure.com/',
-      'AZURE_OPENAI_DEPLOYMENT': 'gpt-4',
-      'AZURE_LANGUAGE_KEY':
-          'DiaAEgjah3gPN5A5eN1HvUIP8a8ZtJrAzcQe24CnCv99ha5vgqzfJQQJ99BHACYeBjFXJ3w3AAAaACOGgiAQ',
-      'AZURE_LANGUAGE_ENDPOINT':
-          'https://hordvoicelang.cognitiveservices.azure.com/',
+      
+      // Azure Translator
+      'AZURE_TRANSLATOR_KEY': 'your_azure_translator_key_here',
+      'AZURE_TRANSLATOR_ENDPOINT': 'https://api.cognitive.microsofttranslator.com/',
+      
+      // Azure OpenAI
+      'AZURE_OPENAI_KEY': 'your_azure_openai_key_here',
+      'AZURE_OPENAI_ENDPOINT': 'https://your-instance.openai.azure.com/',
+      'AZURE_OPENAI_DEPLOYMENT': 'chat',
+      
+      // Azure Language Services
+      'AZURE_LANGUAGE_KEY': 'your_azure_language_key_here',
+      'AZURE_LANGUAGE_ENDPOINT': 'https://your-language-service.cognitiveservices.azure.com/',
       'AZURE_LANGUAGE_REGION': 'eastus',
-      'AZURE_ML_KEY':
-          'https://hordai.vault.azure.net/keys/HordVoice/7844c139da8c42c4886f3883b9d072fa',
-      'AZURE_ML_ENDPOINT': 'https://hordai.vault.azure.net',
-      'AZURE_FORM_RECOGNIZER_KEY':
-          'C9870i6q0a5zGWEAaGXlGtq9CvvahmPSITZBtaSN1oLvAN7fB6VUJQQJ99BHACYeBjFXJ3w3AAALACOGLMLT',
-      'AZURE_FORM_RECOGNIZER_ENDPOINT':
-          'https://reconnaissancedeformulaire.cognitiveservices.azure.com/',
+      
+      // Azure Machine Learning
+      'AZURE_ML_KEY': 'your_azure_ml_key_here',
+      'AZURE_ML_ENDPOINT': 'https://your-ml-workspace.vault.azure.net',
+      
+      // Azure Form Recognizer
+      'AZURE_FORM_RECOGNIZER_KEY': 'your_azure_form_recognizer_key_here',
+      'AZURE_FORM_RECOGNIZER_ENDPOINT': 'https://your-form-recognizer.cognitiveservices.azure.com/',
       'AZURE_FORM_RECOGNIZER_REGION': 'eastus',
-      'AZURE_MAPS_KEY':
-          '4aXO1Ab6kcdOVw6LYsKfTMKUwcW3iGJWeUGuBNwxJGkpEicubgseJQQJ99BHACi5YpzPDDZUAAAgAZMP3FDa',
-      'AZURE_MAPS_CLIENT_ID': 'c9ca8eae-a04c-4150-bcba-b4fc44ebbffc',
+      
+      // Azure Maps
+      'AZURE_MAPS_KEY': 'your_azure_maps_key_here',
+      'AZURE_MAPS_CLIENT_ID': 'your_azure_maps_client_id_here',
       'AZURE_MAPS_ENDPOINT': 'https://atlas.microsoft.com',
-      'SUPABASE_URL': 'https://glbzkbshvgiceiaqobzu.supabase.co',
-      'SUPABASE_ANON_KEY':
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdsYnprYnNodmdpY2VpYXFvYnp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MjkyMjgsImV4cCI6MjA3MDEwNTIyOH0.NWeZnbRP6wYS-TNPzoelGt-6FBwj2b4c4SywW3QRSbE',
-      'OPENWEATHERMAP_API_KEY': 'cdcff205ac95a50040813b0464d87d5a',
+      
+      // Supabase
+      'SUPABASE_URL': 'https://your-project.supabase.co',
+      'SUPABASE_ANON_KEY': 'your_supabase_anon_key_here',
+      
+      // External APIs
+      'OPENWEATHERMAP_API_KEY': 'your_openweathermap_api_key_here',
       'OPENWEATHERMAP_ENDPOINT': 'https://api.openweathermap.org/data/2.5',
+      
+      // Configuration
       'DEBUG_MODE': 'false',
       'LOG_LEVEL': 'info',
+      
+      // Clés de sécurité
+      'MASTER_SECRET_KEY': 'your_master_secret_key_here',
+      'JWT_SECRET': 'your_jwt_secret_here',
+      'ENCRYPTION_KEY': 'your_encryption_key_here',
     });
   }
 
@@ -227,6 +239,11 @@ class EnvironmentConfig {
   bool get debugMode =>
       getValueOrDefault('DEBUG_MODE', 'false').toLowerCase() == 'true';
   String get logLevel => getValueOrDefault('LOG_LEVEL', 'info');
+  
+  // Clés de sécurité
+  String? get masterSecretKey => getValue('MASTER_SECRET_KEY');
+  String? get jwtSecret => getValue('JWT_SECRET');
+  String? get encryptionKey => getValue('ENCRYPTION_KEY');
 
   /// Validation de la configuration
   List<String> validateConfiguration() {
