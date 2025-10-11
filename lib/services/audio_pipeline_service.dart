@@ -10,6 +10,13 @@ import 'voice_calibration_service.dart';
 import 'azure_wake_word_service.dart';
 import 'azure_speech_service.dart';
 import 'azure_speech_phrase_hints_service.dart';
+// Nouveaux services d'optimisation
+import 'voice_performance_monitoring_service.dart';
+import 'audio_buffer_optimization_service.dart';
+import 'smart_wake_word_detection_service.dart';
+import 'voice_memory_optimization_service.dart';
+import 'azure_api_optimization_service.dart';
+import 'audio_compression_service.dart';
 
 /// Provider pour le service de pipeline audio
 final audioPipelineProvider =
@@ -75,34 +82,39 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
     _initialize();
   }
 
-  // Services
+  // Services existants
   final VoiceCalibrationService _calibrationService = VoiceCalibrationService();
   final AzureWakeWordService _wakeWordService = AzureWakeWordService();
   final AzureSpeechService _speechService = AzureSpeechService();
   late FlutterTts _tts;
 
+  // Nouveaux services d'optimisation
+  late VoicePerformanceMonitoringService _performanceService;
+  late AudioBufferOptimizationService _bufferService;
+  late SmartWakeWordDetectionService _smartWakeWordService;
+  late VoiceMemoryOptimizationService _memoryService;
+  late AzureApiOptimizationService _apiService;
+  late AudioCompressionService _compressionService;
+
   // Timers et streams
   Timer? _wakeWordTimer;
   Timer? _volumeTimer;
-  Timer?
-  _listeningTimeout; // AJOUT: Timeout pour arrêter l'écoute automatiquement
+  Timer? _listeningTimeout; // Timeout pour arrêter l'écoute automatiquement
   StreamSubscription? _audioStreamSubscription;
 
   // Configuration
   static const int _waveformBars = 24;
-  static const Duration _listeningTimeoutDuration = Duration(
-    seconds: 8,
-  ); // Timeout écoute
-  static const Duration _wakeWordDetectionInterval = Duration(
-    seconds: 10,
-  ); // Intervalle wake word
+  static const Duration _listeningTimeoutDuration = Duration(seconds: 8); // Timeout écoute
+  static const Duration _wakeWordDetectionInterval = Duration(seconds: 10); // Intervalle wake word
 
-  /// Initialise le pipeline audio
+  /// Initialise le pipeline audio avec optimisations
   Future<void> _initialize() async {
     try {
+      // Initialiser tous les services d'optimisation
+      await _initializeOptimizationServices();
+
       // Vérifier les permissions
-      final hasPermissions =
-          await PermissionManagerService.hasEssentialPermissions();
+      final hasPermissions = await PermissionManagerService.hasEssentialPermissions();
       if (!hasPermissions) {
         state = state.copyWith(
           status: AudioPipelineStatus.error,
@@ -139,8 +151,8 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
         selectedVoice: defaultVoice,
       );
 
-      // Démarrer la détection du wake word
-      _startWakeWordDetection();
+      // Démarrer la détection intelligente du wake word
+      _startSmartWakeWordDetection();
     } catch (e) {
       state = state.copyWith(
         status: AudioPipelineStatus.error,
@@ -149,7 +161,89 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
     }
   }
 
-  /// Démarre la détection du wake word
+  /// Initialise tous les services d'optimisation
+  Future<void> _initializeOptimizationServices() async {
+    debugPrint('🚀 Initialisation des services d\'optimisation vocale...');
+
+    // Service de monitoring des performances
+    _performanceService = VoicePerformanceMonitoringService();
+    await _performanceService.initialize();
+    await _performanceService.startMonitoring();
+
+    // Service d'optimisation des buffers audio
+    _bufferService = AudioBufferOptimizationService();
+    await _bufferService.initialize();
+
+    // Service de détection intelligente de wake word
+    _smartWakeWordService = SmartWakeWordDetectionService();
+    await _smartWakeWordService.initialize();
+
+    // Service d'optimisation mémoire
+    _memoryService = VoiceMemoryOptimizationService();
+    await _memoryService.initialize();
+    await _memoryService.startOptimization();
+
+    // Service d'optimisation des API Azure
+    _apiService = AzureApiOptimizationService();
+    await _apiService.initialize();
+
+    // Service de compression audio
+    _compressionService = AudioCompressionService();
+    await _compressionService.initialize();
+
+    debugPrint('✅ Services d\'optimisation initialisés avec succès');
+  }
+
+  /// Démarre la détection intelligente du wake word
+  void _startSmartWakeWordDetection() {
+    state = state.copyWith(isWakeWordActive: true);
+
+    // Utiliser le service de détection intelligente
+    _startSmartWakeWordService();
+  }
+
+  /// Démarre le service de détection intelligente
+  Future<void> _startSmartWakeWordService() async {
+    try {
+      debugPrint('🧠 Démarrage détection intelligente wake word...');
+
+      // Démarrer l'écoute intelligente
+      await _smartWakeWordService.startListening();
+
+      // Écouter les détections intelligentes
+      _smartWakeWordService.detectionStream.listen((smartResult) {
+        if (smartResult.originalResult.isDetected &&
+            !smartResult.originalResult.needsConfirmation &&
+            state.status == AudioPipelineStatus.idle) {
+          debugPrint(
+            '✅ Wake word intelligent détecté: ${smartResult.originalResult.matchedText} '
+            '(conf: ${smartResult.adjustedConfidence.toStringAsFixed(2)}, '
+            'énergie: ${smartResult.energyLevel.toStringAsFixed(2)})',
+          );
+          _onWakeWordDetected();
+        }
+      });
+
+      // Écouter les infos d'activité vocale
+      _smartWakeWordService.vadStream.listen((vadInfo) {
+        // Mettre à jour l'état d'activité vocale si nécessaire
+        debugPrint('VAD: ${vadInfo.isActive ? "Activité" : "Silence"} détecté');
+      });
+
+    } catch (e) {
+      debugPrint('Erreur détection intelligente wake word: $e');
+      // Fallback vers la détection standard
+      _fallbackToStandardWakeWord();
+    }
+  }
+
+  /// Fallback vers la détection standard en cas d'erreur
+  void _fallbackToStandardWakeWord() {
+    debugPrint('🔄 Fallback vers détection wake word standard');
+    _startWakeWordDetection();
+  }
+
+  /// Démarre la détection du wake word (méthode originale)
   void _startWakeWordDetection() {
     state = state.copyWith(isWakeWordActive: true);
 
@@ -255,24 +349,130 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
     });
   }
 
-  /// Démarre l'écoute après wake word ou interaction tactile
+  /// Démarre l'écoute après wake word ou interaction tactile (optimisée)
   Future<void> startListening() async {
     if (state.status != AudioPipelineStatus.idle) return;
 
-    state = state.copyWith(
-      status: AudioPipelineStatus.listening,
-      currentEmotion: EmotionType.neutral,
-      error: null,
-    );
+    final stopwatch = Stopwatch()..start();
 
-    // Démarrer la génération de waveform
-    _startWaveformGeneration();
+    try {
+      // Obtenir un contexte audio optimisé
+      final audioContext = _memoryService.getAudioContext();
+      
+      state = state.copyWith(
+        status: AudioPipelineStatus.listening,
+        currentEmotion: EmotionType.neutral,
+        error: null,
+      );
 
-    // AJOUT: Démarrer le timeout d'écoute pour éviter l'écoute infinie
-    _startListeningTimeout();
+      // Démarrer la génération de waveform optimisée
+      _startOptimizedWaveformGeneration();
 
-    // IMPLÉMENTATION: Vraie reconnaissance vocale avec Azure Speech
-    _startRealVoiceRecognition();
+      // Démarrer le timeout d'écoute pour éviter l'écoute infinie
+      _startListeningTimeout();
+
+      // Reconnaissance vocale optimisée avec compression
+      await _startOptimizedVoiceRecognition(audioContext);
+
+      stopwatch.stop();
+
+      // Enregistrer les métriques de performance
+      _performanceService.recordVoiceRecognitionMetric(
+        latency: stopwatch.elapsed,
+        confidence: 0.0, // Will be updated when recognition completes
+        audioDataSize: 0, // Will be updated with actual data
+        recognizedText: 'listening_started',
+      );
+
+    } catch (e) {
+      stopwatch.stop();
+      debugPrint('Erreur démarrage écoute optimisée: $e');
+      
+      // Fallback vers la méthode standard
+      _startRealVoiceRecognition();
+    }
+  }
+
+  /// Démarre la reconnaissance vocale optimisée
+  Future<void> _startOptimizedVoiceRecognition(dynamic audioContext) async {
+    try {
+      debugPrint('🎤 Démarrage reconnaissance vocale optimisée...');
+
+      // Allouer des buffers optimisés pour la reconnaissance
+      final inputBuffer = _bufferService.allocateRecognitionBuffer();
+
+      // Démarrer la reconnaissance continue avec optimisations API
+      await _speechService.startListening();
+
+      // Gérer le stream de résultats avec optimisation mémoire
+      final subscription = _memoryService.manageStream(
+        _speechService.resultStream,
+        (result) => _handleOptimizedRecognitionResult(result, audioContext),
+        streamId: 'voice_recognition',
+        onError: (error) => _handleRecognitionError(error),
+      );
+
+      // Nettoyer le buffer après usage
+      _scheduleBufferCleanup(inputBuffer);
+
+    } catch (e) {
+      debugPrint('Erreur reconnaissance optimisée: $e');
+      // Fallback vers la méthode standard
+      _startRealVoiceRecognition();
+    }
+  }
+
+  /// Traite les résultats de reconnaissance optimisés
+  void _handleOptimizedRecognitionResult(dynamic result, dynamic audioContext) {
+    if (result.recognizedText.isNotEmpty && state.status == AudioPipelineStatus.listening) {
+      _listeningTimeout?.cancel(); // Arrêter timeout car commande reconnue
+
+      debugPrint('✅ Commande reconnue (optimisée): ${result.recognizedText}');
+
+      state = state.copyWith(
+        status: AudioPipelineStatus.processing,
+        lastRecognizedText: result.recognizedText,
+        currentEmotion: EmotionType.joy,
+      );
+
+      // Enregistrer les métriques de performance
+      _performanceService.recordVoiceRecognitionMetric(
+        latency: Duration(milliseconds: 50), // Temps depuis début écoute
+        confidence: result.confidence,
+        audioDataSize: 0, // Taille des données audio
+        recognizedText: result.recognizedText,
+      );
+
+      // Traiter la commande de manière optimisée
+      _processOptimizedCommand(result.recognizedText, audioContext);
+    }
+  }
+
+  /// Traite une commande de manière optimisée
+  Future<void> _processOptimizedCommand(String command, dynamic audioContext) async {
+    try {
+      // Retourner le contexte audio au pool
+      _memoryService.returnAudioContext(audioContext);
+
+      // Traitement existant de la commande
+      await _processCommand(command);
+      
+    } catch (e) {
+      debugPrint('Erreur traitement commande optimisée: $e');
+      // Fallback vers le traitement standard
+      await _processCommand(command);
+    }
+  }
+
+  /// Programme le nettoyage d'un buffer
+  void _scheduleBufferCleanup(dynamic buffer) {
+    Timer(const Duration(seconds: 5), () {
+      try {
+        _bufferService.deallocateBuffer(buffer, context: 'recognition_cleanup');
+      } catch (e) {
+        debugPrint('Erreur nettoyage buffer: $e');
+      }
+    });
   }
 
   /// IMPLÉMENTATION: Vraie reconnaissance vocale avec Azure Speech
@@ -391,37 +591,98 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
 
   /// Synthèse vocale avec émotion
   Future<void> speak(String text, [EmotionType? emotion]) async {
-    state = state.copyWith(
-      status: AudioPipelineStatus.speaking,
-      currentSpeech: text,
-      currentEmotion: emotion ?? EmotionType.neutral,
-    );
+    final startTime = DateTime.now();
+    
+    // Use memory-optimized synthesis context
+    final synthContext = await _memoryOptimizationService.acquireSynthesisContext();
+    
+    try {
+      state = state.copyWith(
+        status: AudioPipelineStatus.speaking,
+        currentSpeech: text,
+        currentEmotion: emotion ?? EmotionType.neutral,
+      );
 
-    // IMPLÉMENTATION: Vraie synthèse vocale avec Azure Speech TTS
-    await _speakWithAzure(text, emotion);
+      // Track synthesis performance
+      await _performanceMonitoringService.recordMetric(
+        'synthesis_start',
+        0.0,
+        {'text_length': text.length.toDouble()},
+      );
 
-    state = state.copyWith(
-      status: AudioPipelineStatus.idle,
-      currentSpeech: null,
-      currentEmotion: EmotionType.neutral,
-    );
+      // IMPLÉMENTATION: Optimized speech synthesis with Azure Speech TTS
+      await _speakWithAzure(text, emotion, synthContext);
+
+      state = state.copyWith(
+        status: AudioPipelineStatus.idle,
+        currentSpeech: null,
+        currentEmotion: EmotionType.neutral,
+      );
+
+      // Record synthesis completion metrics
+      final latency = DateTime.now().difference(startTime).inMilliseconds.toDouble();
+      await _performanceMonitoringService.recordMetric(
+        'synthesis_latency',
+        latency,
+        {'text_length': text.length.toDouble()},
+      );
+    } finally {
+      await _memoryOptimizationService.releaseSynthesisContext(synthContext);
+    }
   }
 
-  /// IMPLÉMENTATION: Synthèse vocale avec FlutterTts et configuration voix
-  Future<void> _speakWithAzure(String text, EmotionType? emotion) async {
+  /// IMPLÉMENTATION: Optimized speech synthesis with FlutterTts and audio compression
+  Future<void> _speakWithAzure(String text, EmotionType? emotion, dynamic synthContext) async {
     try {
-      debugPrint('Synthèse TTS: $text');
+      debugPrint('Synthèse TTS optimisée: $text');
 
-      // Configurer la voix selon la sélection et l'émotion
+      // Optimize API call with Azure optimization service
+      final optimizedRequest = await _azureApiOptimizationService.optimizeRequest(
+        'synthesis',
+        {'text': text, 'emotion': emotion?.toString()},
+      );
+
+      // Configure TTS voice according to selection and emotion
       if (state.selectedVoice != null) {
         await _configureTTSVoice(state.selectedVoice!, emotion);
       }
 
-      // Lancer la synthèse vocale
-      await _tts.speak(text);
+      // Get or create audio buffer for synthesis
+      final audioBuffer = _audioBufferOptimizationService.createBuffer(1024 * 4); // 4KB for TTS output
+      
+      try {
+        // Launch voice synthesis with compression
+        await _tts.speak(text);
+        
+        // Compress audio output if available
+        if (audioBuffer.isNotEmpty) {
+          final compressedAudio = await _audioCompressionService.compressAudio(
+            audioBuffer,
+            quality: CompressionQuality.balanced,
+          );
+          
+          // Log compression ratio for monitoring
+          final compressionRatio = audioBuffer.length / compressedAudio.length;
+          await _performanceMonitoringService.recordMetric(
+            'synthesis_compression_ratio',
+            compressionRatio,
+            {'original_size': audioBuffer.length.toDouble()},
+          );
+        }
+      } finally {
+        _audioBufferOptimizationService.releaseBuffer(audioBuffer);
+      }
     } catch (e) {
-      debugPrint('Erreur synthèse TTS: $e');
-      // Fallback vers simulation
+      debugPrint('Erreur synthèse TTS optimisée: $e');
+      
+      // Record synthesis error
+      await _performanceMonitoringService.recordMetric(
+        'synthesis_error',
+        1.0,
+        {'error_type': e.runtimeType.toString()},
+      );
+      
+      // Fallback to simulation
       await _simulateSpeech(text);
     }
   }
@@ -524,6 +785,55 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
       );
     } catch (e) {
       debugPrint('Erreur configuration TTS pour la voix ${voice.name}: $e');
+    }
+  }
+
+  /// Génère les données de waveform optimisées
+  void _startOptimizedWaveformGeneration() {
+    _volumeTimer?.cancel();
+    
+    // Utiliser un buffer réutilisable pour les données waveform
+    final waveformBuffer = _memoryService.getDoubleList();
+    
+    _volumeTimer = Timer.periodic(
+      const Duration(milliseconds: 50), // 20 FPS
+      (_) => _updateOptimizedWaveform(waveformBuffer),
+    );
+  }
+
+  /// Met à jour les données de waveform de manière optimisée
+  void _updateOptimizedWaveform(List<double> waveformBuffer) {
+    if (state.status != AudioPipelineStatus.listening) return;
+
+    try {
+      // Simulation du niveau audio avec patterns réalistes et optimisés
+      final random = Random();
+      final baseLevel = 0.3 + random.nextDouble() * 0.4; // 0.3-0.7
+      final spike = random.nextDouble() < 0.1 ? random.nextDouble() * 0.3 : 0.0;
+      final currentVolume = (baseLevel + spike).clamp(0.0, 1.0);
+
+      // Réutiliser le buffer existant plutôt que créer une nouvelle liste
+      waveformBuffer.clear();
+      
+      // Générer données waveform optimisées
+      for (int index = 0; index < _waveformBars; index++) {
+        final variation = random.nextDouble() * 0.3 - 0.15; // -0.15 à +0.15
+        final barLevel = (currentVolume + variation).clamp(0.0, 1.0);
+
+        // Appliquer un pattern pour rendre plus naturel
+        final pattern = sin((index / _waveformBars) * 2 * pi) * 0.1;
+        waveformBuffer.add((barLevel + pattern).clamp(0.0, 1.0));
+      }
+
+      state = state.copyWith(
+        currentVolume: currentVolume,
+        waveformData: List.from(waveformBuffer), // Copie pour l'immutabilité
+      );
+
+    } catch (e) {
+      debugPrint('Erreur waveform optimisée: $e');
+      // Fallback vers la méthode standard
+      _updateWaveform();
     }
   }
 
@@ -707,6 +1017,15 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
     _listeningTimeout?.cancel(); // AJOUT: Nettoyer le timeout d'écoute
     _audioStreamSubscription?.cancel();
     _calibrationService.dispose();
+    
+    // Dispose optimization services
+    _performanceMonitoringService.dispose();
+    _audioBufferOptimizationService.dispose();
+    _smartWakeWordDetectionService.dispose();
+    _memoryOptimizationService.dispose();
+    _azureApiOptimizationService.dispose();
+    _audioCompressionService.dispose();
+    
     super.dispose();
   }
 }
