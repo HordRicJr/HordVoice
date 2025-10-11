@@ -58,13 +58,18 @@ class VoiceOnboardingService {
     }
   }
 
-  /// Étape 5A: Démarrage auto - Greeting immédiat
+  /// Étape 5A: Démarrage auto - Greeting immédiat avec attente utilisateur
   Future<void> startOnboarding() async {
     if (!_isInitialized) {
       await initialize();
     }
 
+    debugPrint('🎙️ Démarrage onboarding vocal séquentiel');
+
     try {
+      // Arrêter toute écoute active pour éviter les conflits
+      await _stopAllListeningServices();
+      
       final isFirstRun = await _isFirstRun();
 
       if (isFirstRun) {
@@ -90,27 +95,147 @@ class VoiceOnboardingService {
     }
   }
 
+  /// Arrêter tous les services d'écoute pour éviter les conflits
+  Future<void> _stopAllListeningServices() async {
+    try {
+      // Arrêter écoute Azure Speech si active
+      if (_speechService.isListening) {
+        await _speechService.stopListening();
+      }
+      
+      // Arrêter wake word detection si méthode existe
+      try {
+        await _unifiedService.stopWakeWordDetection();
+      } catch (e) {
+        debugPrint('Wake word detection non disponible: $e');
+      }
+      
+      debugPrint('✅ Services d\'écoute arrêtés pour onboarding');
+    } catch (e) {
+      debugPrint('Erreur arrêt services écoute: $e');
+    }
+  }
+
+  /// Attendre la confirmation de l'utilisateur avant de continuer
+  Future<void> _waitForUserConfirmation(String expectedKeywords) async {
+    debugPrint('🎧 Attente confirmation utilisateur: $expectedKeywords');
+    
+    try {
+      // Démarrer écoute spécifiquement pour cette confirmation
+      await _speechService.startListening();
+      
+      bool confirmationReceived = false;
+      
+      // Timeout après 15 secondes
+      Timer? timeoutTimer = Timer(Duration(seconds: 15), () async {
+        if (!confirmationReceived) {
+          await _speechService.stopListening();
+          await _handleConfirmationTimeout();
+        }
+      });
+
+      // Écouter la réponse
+      _speechService.resultStream.listen((result) async {
+        if (result.isFinal && !confirmationReceived) {
+          confirmationReceived = true;
+          timeoutTimer.cancel();
+          await _speechService.stopListening();
+          
+          final text = result.recognizedText.toLowerCase();
+          debugPrint('🎤 Réponse utilisateur: $text');
+          
+          // Vérifier si la réponse contient les mots-clés attendus
+          if (text.contains('continuer') || 
+              text.contains('oui') || 
+              text.contains('ok') ||
+              text.contains('d\'accord') ||
+              text.contains('commencer')) {
+            debugPrint('✅ Confirmation positive reçue');
+            await _unifiedService.speakText('Parfait ! Continuons.');
+          } else if (text.contains('non') || text.contains('arrêter')) {
+            debugPrint('❌ Confirmation négative reçue');
+            await _unifiedService.speakText('D\'accord, nous arrêtons ici.');
+            await _markOnboardingCompleted(); // Arrêter l'onboarding
+            return;
+          } else {
+            debugPrint('❓ Réponse ambiguë, on continue quand même');
+            await _unifiedService.speakText('Je n\'ai pas bien compris, mais continuons.');
+          }
+          
+          // Petite pause avant l'étape suivante
+          await Future.delayed(Duration(seconds: 1));
+        }
+      });
+
+      // Gérer les erreurs de reconnaissance
+      _speechService.errorStream.listen((error) async {
+        if (!confirmationReceived) {
+          confirmationReceived = true;
+          timeoutTimer.cancel();
+          await _speechService.stopListening();
+          await _handleConfirmationError();
+        }
+      });
+      
+    } catch (e) {
+      debugPrint('Erreur attente confirmation: $e');
+      // Continuer quand même en cas d'erreur
+      await _unifiedService.speakText('Je continue la configuration.');
+    }
+  }
+
+  /// Gérer le timeout de confirmation
+  Future<void> _handleConfirmationTimeout() async {
+    debugPrint('⏰ Timeout confirmation utilisateur');
+    await _unifiedService.speakText(
+      'Je n\'ai pas entendu de réponse. Je continue la configuration.',
+    );
+  }
+
+  /// Gérer les erreurs de confirmation
+  Future<void> _handleConfirmationError() async {
+    debugPrint('❌ Erreur confirmation utilisateur');
+    await _unifiedService.speakText(
+      'Il y a eu un petit problème d\'écoute. Je continue quand même.',
+    );
+  }
+
   /// Vérifier si c'est le premier lancement
   Future<bool> _isFirstRun() async {
     final prefs = await SharedPreferences.getInstance();
     return !(prefs.getBool('onboarding_completed') ?? false);
   }
 
-  /// Étape 5A: Greeting pour première fois
+  /// Étape 5A: Greeting pour première fois - AVEC ATTENTE
   Future<void> _stepWelcomeFirstTime() async {
     _currentStep = 'welcome_first';
 
+    debugPrint('🗣️ Étape 1: Message d\'accueil');
+    
+    // Message d'accueil - ATTENDRE la fin complète
     await _unifiedService.speakText(
       'Bonjour ! Je suis Ric, votre assistant vocal personnel. '
       'Je vais vous guider pour me configurer en quelques étapes. '
       'Tout se fait à la voix, pas besoin de touches.',
     );
 
-    await Future.delayed(Duration(seconds: 2));
+    // ATTENDRE 3 secondes pour que l'utilisateur comprenne
+    debugPrint('⏳ Attente assimilation message...');
+    await Future.delayed(Duration(seconds: 3));
+    
+    // Demander confirmation avant de continuer
+    await _unifiedService.speakText(
+      'Dites "continuer" ou "oui" quand vous êtes prêt pour commencer la configuration.',
+    );
+    
+    // ATTENDRE la réponse de l'utilisateur
+    await _waitForUserConfirmation('continuer');
+    
+    debugPrint('✅ Utilisateur prêt, passage à l\'étape microphone');
     await _stepCheckMicrophone();
   }
 
-  /// Greeting pour utilisateur qui revient
+  /// Greeting pour utilisateur qui revient - AVEC ACTIVATION WAKE WORD
   Future<void> _stepWelcomeReturning() async {
     _currentStep = 'welcome_returning';
 
@@ -127,7 +252,24 @@ class VoiceOnboardingService {
       greeting = 'Bonsoir ! Ric est là. Réveillez-moi avec "Hey Ric".';
     }
 
+    debugPrint('🗣️ Message d\'accueil utilisateur revenant');
     await _unifiedService.speakText(greeting);
+
+    // ATTENDRE la fin du TTS
+    await Future.delayed(Duration(seconds: 2));
+    
+    // ACTIVER le wake word detection après le message
+    debugPrint('🎧 Activation détection wake word "Hey Ric"');
+    try {
+      await _unifiedService.startWakeWordDetection();
+      debugPrint('✅ Wake word "Hey Ric" activé');
+    } catch (e) {
+      debugPrint('❌ Erreur activation wake word: $e');
+      // Fallback : écoute continue
+      await _unifiedService.speakText(
+        'Vous pouvez maintenant me parler directement sans appuyer sur un bouton.',
+      );
+    }
 
     // Marquer l'onboarding comme terminé pour les prochaines fois
     await _markOnboardingCompleted();

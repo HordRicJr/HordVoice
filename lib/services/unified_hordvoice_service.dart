@@ -1195,6 +1195,11 @@ class UnifiedHordVoiceService {
     return wakeWords.any((wake) => lowerText.contains(wake));
   }
 
+  /// Méthode publique pour démarrer la détection wake word
+  Future<void> startWakeWordDetection() async {
+    await _startWakeWordDetection();
+  }
+
   /// Arrête la détection de wake word
   Future<void> stopWakeWordDetection() async {
     _wakeWordActive = false;
