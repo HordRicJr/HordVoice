@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../localization/language_resolver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/voice_models.dart';
@@ -193,8 +194,9 @@ class VoiceInteractionNotifier extends StateNotifier<VoiceInteractionState> {
     _azureTts = FlutterTts();
     await _envConfig.loadConfig();
 
-    // Configuration TTS
-    await _azureTts.setLanguage('fr-FR');
+  // Configuration TTS
+  final ttsLang = await LanguageResolver.getTtsLanguage();
+  await _azureTts.setLanguage(ttsLang);
     await _azureTts.setSpeechRate(0.8);
     await _azureTts.setVolume(1.0);
     await _azureTts.setPitch(1.0);

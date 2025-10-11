@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../localization/language_resolver.dart';
 
 /// Service de mode karaoké calibration pour HordVoice IA
 /// Fonctionnalité 3: Mode Karaoké calibration
@@ -72,7 +73,8 @@ class KaraokeCalibrationService {
   Future<void> _configureTts() async {
     if (_tts == null) return;
 
-    await _tts!.setLanguage('fr-FR');
+    final ttsLang = await LanguageResolver.getTtsLanguage();
+    await _tts!.setLanguage(ttsLang);
     await _tts!.setSpeechRate(_userTempoPreference);
     await _tts!.setVolume(_userVolumePreference);
     await _tts!.setPitch(1.0);

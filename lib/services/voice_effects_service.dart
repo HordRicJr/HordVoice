@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../localization/language_resolver.dart';
 
 /// Service d'effets vocaux en sortie pour HordVoice IA
 /// Fonctionnalité 7: Effets vocaux en sortie
@@ -56,7 +57,8 @@ class VoiceEffectsService {
   Future<void> _configureTts() async {
     if (_tts == null) return;
 
-    await _tts!.setLanguage('fr-FR');
+    final ttsLang = await LanguageResolver.getTtsLanguage();
+    await _tts!.setLanguage(ttsLang);
     await _tts!.setSpeechRate(1.0);
     await _tts!.setVolume(1.0);
     await _tts!.setPitch(1.0);
@@ -410,7 +412,8 @@ class VoiceEffectsService {
   Future<void> _resetToDefault() async {
     if (_tts == null) return;
 
-    await _tts!.setLanguage('fr-FR');
+  final ttsLang = await LanguageResolver.getTtsLanguage();
+  await _tts!.setLanguage(ttsLang);
     await _tts!.setSpeechRate(1.0);
     await _tts!.setVolume(1.0);
     await _tts!.setPitch(1.0);

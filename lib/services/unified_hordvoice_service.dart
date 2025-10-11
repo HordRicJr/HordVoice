@@ -6,6 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import '../localization/language_resolver.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -279,7 +280,8 @@ class UnifiedHordVoiceService {
   }
 
   Future<void> _initializeTTS() async {
-    await _tts.setLanguage('fr-FR');
+  final ttsLang = await LanguageResolver.getTtsLanguage();
+  await _tts.setLanguage(ttsLang);
     await _tts.setSpeechRate(0.8);
     await _tts.setVolume(0.8);
     await _tts.setPitch(1.0);

@@ -17,6 +17,7 @@ import 'smart_wake_word_detection_service.dart';
 import 'voice_memory_optimization_service.dart';
 import 'azure_api_optimization_service.dart';
 import 'audio_compression_service.dart';
+import '../localization/language_resolver.dart';
 
 /// Provider pour le service de pipeline audio
 final audioPipelineProvider =
@@ -138,10 +139,11 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
       await _initializeTTS();
 
       // Charger la voix par défaut
+      final defaultVoiceLang = await LanguageResolver.getTtsLanguage();
       final defaultVoice = VoiceOption(
         id: 'clara',
         name: 'Clara',
-        language: 'fr-FR',
+        language: defaultVoiceLang,
         style: 'warm',
         gender: 'female',
         description: 'Voix féminine chaleureuse',
@@ -285,7 +287,9 @@ class AudioPipelineNotifier extends StateNotifier<AudioPipelineState> {
   /// Initialise le TTS
   Future<void> _initializeTTS() async {
     try {
-      await _tts.setLanguage('fr-FR');
+      // Resolve TTS language based on saved locale
+      final ttsLang = await LanguageResolver.getTtsLanguage();
+      await _tts.setLanguage(ttsLang);
       await _tts.setSpeechRate(0.5);
       await _tts.setVolume(0.8);
       await _tts.setPitch(1.0);
