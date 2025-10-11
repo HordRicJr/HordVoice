@@ -52,7 +52,7 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     
     // Azure Speech SDK
     implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.38.0")
