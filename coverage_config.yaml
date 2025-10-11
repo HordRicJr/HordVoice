@@ -1,0 +1,26 @@
+# Test coverage configuration for HordVoice Azure AI Services
+
+# Exclude generated files and platform-specific code from coverage
+coverage:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "**/generated/**"
+    - "**/l10n/**"
+    - "**/platform_channels/**"
+    - "lib/main.dart"
+    - "test/**"
+
+# Minimum coverage thresholds
+coverage_thresholds:
+  line_coverage: 80
+  function_coverage: 80
+  branch_coverage: 75
+
+# Specific service coverage targets
+azure_services_coverage:
+  azure_speech_service: 85
+  azure_openai_service: 85
+  environment_config: 80
+  circuit_breaker: 80
