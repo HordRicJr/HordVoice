@@ -55,7 +55,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     
     // Azure Speech SDK
-    implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.38.0")
+    implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.46.0")
     
     // Support pour les coroutines Kotlin (nécessaire pour Azure Speech)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
