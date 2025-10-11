@@ -709,8 +709,8 @@ If HordVoice helps you or your project, please consider:
 
 [![GitHub Profile](https://img.shields.io/badge/GitHub-HordRicJr-181717?style=for-the-badge&logo=github)](https://github.com/HordRicJr)
 [![Email](https://img.shields.io/badge/Email-assounrodrigue5%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:assounrodrigue5@gmail.com)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/HordRicJr)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/HordRicJr)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/hordric)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://x.com/assounrodrigue)
 
 </div>
 

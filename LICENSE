@@ -1,0 +1,51 @@
+HordVoice Proprietary License
+
+Copyright (c) 2025 HordRicJr (Rodrigue Assoun)
+
+IMPORTANT: READ CAREFULLY BEFORE USING THIS SOFTWARE
+
+This software and associated documentation files (the "Software") are protected by copyright law and international treaties. The Software is licensed, not sold.
+
+GRANT OF LICENSE
+Subject to the terms and conditions of this License, HordRicJr hereby grants you a limited, non-exclusive, non-transferable, revocable license to:
+- Use the Software for personal, non-commercial purposes only
+- View and study the source code for educational purposes
+- Fork the repository for contributing back to the original project
+
+RESTRICTIONS
+You may NOT:
+- Use the Software for any commercial purposes without explicit written permission
+- Distribute, sell, rent, lease, or sublicense the Software or any portion thereof
+- Create derivative works based on the Software for commercial use
+- Remove or alter any proprietary notices, labels, or marks on the Software
+- Use the Software name, logo, or trademarks without permission
+- Reverse engineer, decompile, or disassemble the Software (except as permitted by law)
+- Use the Software in any way that violates applicable laws or regulations
+
+COMMERCIAL USE
+Commercial use of this Software requires a separate commercial license. Contact the copyright holder at assounrodrigue5@gmail.com for licensing terms.
+
+CONTRIBUTIONS
+By contributing to this project, you agree that your contributions will be licensed under the same terms as this license. You retain copyright to your contributions but grant HordRicJr a perpetual, worldwide, non-exclusive, royalty-free license to use, modify, and distribute your contributions.
+
+AZURE SERVICES
+This Software integrates with Microsoft Azure services. Use of Azure services is subject to Microsoft's terms and conditions. You are responsible for your own Azure usage costs and compliance with Azure's terms of service.
+
+DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+LIMITATION OF LIABILITY
+IN NO EVENT SHALL HORDRICJR BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA, OR OTHER INTANGIBLE LOSSES, EVEN IF HORDRICJR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+TERMINATION
+This license is effective until terminated. Your rights under this license will terminate automatically without notice if you fail to comply with any term(s) of this license. Upon termination, you must cease all use of the Software and destroy all copies.
+
+GOVERNING LAW
+This License shall be governed by and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.
+
+CONTACT INFORMATION
+For questions about this license or to request commercial licensing:
+Email: assounrodrigue5@gmail.com
+GitHub: https://github.com/HordRicJr
+
+Last Updated: October 11, 2025
