@@ -148,7 +148,6 @@ flutter_launcher_icons:
   min_sdk_android: 26
   web:
     generate: true
-    image_path: "assets/images/hordVoice.png"
   windows:
     generate: true
     image_path: "assets/images/hordVoice.png"

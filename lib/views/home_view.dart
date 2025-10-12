@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../generated/l10n/app_localizations.dart';
 import '../controllers/persistent_ai_controller.dart';
 import '../services/unified_hordvoice_service.dart';
 import '../services/voice_management_service.dart';
@@ -38,7 +39,7 @@ class _HomeViewState extends ConsumerState<HomeView>
   // État
   bool _isListening = false;
   bool _isInitialized = false;
-  String _statusText = "Initialisation de l'univers spatial...";
+  String _statusText = "";
   String _currentResponse = "";
 
   @override
@@ -97,22 +98,24 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _initializeServices() async {
     try {
+      final l10n = AppLocalizations.of(context);
       setState(() {
-        _statusText = "Préparation de l'interface...";
+        _statusText = l10n?.initializing ?? "Initializing HordVoice...";
       });
 
       // Démarrer immédiatement l'UI sans attendre
       setState(() {
         _isInitialized = true; // Marquer comme initialisé pour l'UI
-        _statusText = "Prêt! Initialisation en arrière-plan...";
+        _statusText = l10n?.homeWelcome ?? "Welcome to HordVoice";
       });
 
       // Initialisation DIFFÉRÉE en arrière-plan
       _initializeServicesInBackground();
     } catch (e) {
       debugPrint('Erreur initialisation: $e');
+      final l10n = AppLocalizations.of(context);
       setState(() {
-        _statusText = "Interface prête (mode dégradé)";
+        _statusText = l10n?.errorInitialization(e.toString()) ?? "Error during initialization: $e";
         _isInitialized = true;
       });
     }
@@ -261,9 +264,10 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _startListening() async {
     try {
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = true;
-        _statusText = "Ric vous écoute depuis l'univers spatial...";
+        _statusText = l10n?.ricIsListening ?? "Ric is listening from the spatial universe...";
         _currentResponse = "";
       });
 
@@ -280,9 +284,10 @@ class _HomeViewState extends ConsumerState<HomeView>
         _currentResponse = response;
       });
     } catch (e) {
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = false;
-        _statusText = "Erreur d'écoute spatiale: ${e.toString()}";
+        _statusText = l10n?.spatialListeningError(e.toString()) ?? "Spatial listening error: ${e.toString()}";
       });
       _waveController.stop();
     }
@@ -290,20 +295,22 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _stopListening() async {
     try {
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = false;
-        _statusText = "Traitement dans l'univers spatial...";
+        _statusText = l10n?.spatialProcessing ?? "Processing in spatial universe...";
       });
 
       _waveController.stop();
       await _unifiedService.stopListening();
 
       setState(() {
-        _statusText = "Prêt ! Dites 'Hey Ric' dans l'univers spatial";
+        _statusText = l10n?.listenHint ?? "Say 'Hey Ric' to start listening";
       });
     } catch (e) {
+      final l10n = AppLocalizations.of(context);
       setState(() {
-        _statusText = "Erreur d'arrêt: ${e.toString()}";
+        _statusText = l10n?.stopError(e.toString()) ?? "Stop error: ${e.toString()}";
       });
     }
   }
@@ -348,25 +355,6 @@ class _HomeViewState extends ConsumerState<HomeView>
       gradient: RadialGradient(
         center: Alignment.center,
         radius: 1.5,
-                      // Logo with localized title
-                      ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [
-                            Color(0xFF64B5F6),
-                            Color(0xFF42A5F5),
-                            Color(0xFF1976D2),
-                          ],
-                        ).createShader(bounds),
-                        child: Text(
-                          // Use localized app title if available
-                          AppLocalizations.of(context)?.appTitle ?? 'HordVoice',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
         colors: [
           Color(0xFF1A1A3A), // Centre plus clair
           Color(0xFF0D0D1F), // Bords plus sombres
@@ -397,15 +385,6 @@ class _HomeViewState extends ConsumerState<HomeView>
   Widget _buildSpatialHeader() {
     return FadeTransition(
       opacity: _fadeAnimation,
-                      // Settings button
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const SettingsView()),
-                          );
-                        },
-                      ),
       child: Container(
         padding: const EdgeInsets.all(20),
         child: Row(
@@ -420,15 +399,28 @@ class _HomeViewState extends ConsumerState<HomeView>
                   Color(0xFF1976D2),
                 ],
               ).createShader(bounds),
-              child: const Text(
-                'HordVoice',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)?.appTitle ?? 'HordVoice',
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2.0,
                 ),
               ),
+            ),
+
+            // Settings button
+            IconButton(
+              icon: const Icon(Icons.settings, color: Colors.white),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('Settings')),
+                    body: const Center(child: Text('Settings Page - Coming Soon')),
+                  )),
+                );
+              },
             ),
 
             // Indicateur de connexion spatial
@@ -450,7 +442,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                     boxShadow: [
                       BoxShadow(
                         color: (_isInitialized ? Colors.cyan : Colors.orange)
-                            .withOpacity(0.6),
+                            .withValues(alpha: 0.6),
                         blurRadius: 10,
                         spreadRadius: 2,
                       ),
@@ -487,14 +479,14 @@ class _HomeViewState extends ConsumerState<HomeView>
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          Colors.cyan.withOpacity(0.3),
-                          Colors.blue.withOpacity(0.1),
+                          Colors.cyan.withValues(alpha: 0.3),
+                          Colors.blue.withValues(alpha: 0.1),
                           Colors.transparent,
                         ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.cyan.withOpacity(0.3),
+                          color: Colors.cyan.withValues(alpha: 0.3),
                           blurRadius: 50,
                           spreadRadius: 10,
                         ),
@@ -524,15 +516,15 @@ class _HomeViewState extends ConsumerState<HomeView>
                     ),
                     margin: const EdgeInsets.symmetric(horizontal: 40),
                     decoration: BoxDecoration(
-                      color: Colors.cyan.withOpacity(0.1),
+                      color: Colors.cyan.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(25),
                       border: Border.all(
-                        color: Colors.cyan.withOpacity(0.3),
+                        color: Colors.cyan.withValues(alpha: 0.3),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.cyan.withOpacity(0.2),
+                          color: Colors.cyan.withValues(alpha: 0.2),
                           blurRadius: 20,
                           spreadRadius: 2,
                         ),
@@ -557,15 +549,15 @@ class _HomeViewState extends ConsumerState<HomeView>
                       margin: const EdgeInsets.symmetric(horizontal: 40),
                       padding: const EdgeInsets.all(25),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: Colors.blue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.blue.withOpacity(0.3),
+                          color: Colors.blue.withValues(alpha: 0.3),
                           width: 1,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withValues(alpha: 0.2),
                             blurRadius: 15,
                             spreadRadius: 1,
                           ),
@@ -619,21 +611,21 @@ class _HomeViewState extends ConsumerState<HomeView>
                       gradient: RadialGradient(
                         colors: _isListening
                             ? [
-                                Colors.red.withOpacity(0.8),
-                                Colors.red.withOpacity(0.6),
-                                Colors.red.withOpacity(0.3),
+                                Colors.red.withValues(alpha: 0.8),
+                                Colors.red.withValues(alpha: 0.6),
+                                Colors.red.withValues(alpha: 0.3),
                               ]
                             : [
-                                Colors.cyan.withOpacity(0.8),
-                                Colors.blue.withOpacity(0.6),
-                                Colors.blue.withOpacity(0.3),
+                                Colors.cyan.withValues(alpha: 0.8),
+                                Colors.blue.withValues(alpha: 0.6),
+                                Colors.blue.withValues(alpha: 0.3),
                               ],
                       ),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: (_isListening ? Colors.red : Colors.cyan)
-                              .withOpacity(0.6),
+                              .withValues(alpha: 0.6),
                           blurRadius: 30,
                           spreadRadius: _isListening ? 15 : 8,
                         ),
@@ -655,10 +647,10 @@ class _HomeViewState extends ConsumerState<HomeView>
           // Instruction vocale spatiale
           Text(
             _isListening
-                ? "🎙️ En écoute dans l'univers spatial..."
-                : "🌌 Touchez pour parler à Ric",
+                ? "🎙️ ${AppLocalizations.of(context)?.listeningInSpatial ?? 'Listening in the spatial universe...'}"
+                : "🌌 ${AppLocalizations.of(context)?.listenHint ?? 'Say \'Hey Ric\' to start listening'}",
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 16,
               fontWeight: FontWeight.w500,
               letterSpacing: 1.0,
@@ -690,11 +682,11 @@ class SpatialParticlesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.6 * alpha)
+      ..color = Colors.white.withValues(alpha: 0.6 * alpha)
       ..style = PaintingStyle.fill;
 
     final glowPaint = Paint()
-      ..color = Colors.cyan.withOpacity(0.3 * alpha)
+      ..color = Colors.cyan.withValues(alpha: 0.3 * alpha)
       ..style = PaintingStyle.fill;
 
     // Dessiner des étoiles animées
@@ -724,7 +716,7 @@ class SpatialParticlesPainter extends CustomPainter {
       final particleX = (x + particleOffset) % size.width;
       final particleY = (y + particleOffset * 0.3) % size.height;
 
-      paint.color = Colors.cyan.withOpacity(0.4 * alpha);
+      paint.color = Colors.cyan.withValues(alpha: 0.4 * alpha);
       canvas.drawCircle(Offset(particleX, particleY), 2.0, paint);
     }
   }

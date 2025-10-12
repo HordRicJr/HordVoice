@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hordvoice/views/home_view.dart';
 import 'package:hordvoice/widgets/spacial_avatar_view.dart';
@@ -49,7 +49,7 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
       // Connecter les services
       voiceManager.connectEmotionalService(emotionalService);
 
-      // Démarrer le processus d'entrée spatial
+      // DÃ©marrer le processus d'entrÃ©e spatial
       await _performSpatialEntry();
 
       setState(() {
@@ -59,20 +59,20 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
   }
 
   Future<void> _performSpatialEntry() async {
-    // Animation d'entrée dans l'univers spatial
-    debugPrint('🌌 Entrée dans l\'univers spatial...');
+    // Animation d'entrÃ©e dans l'univers spatial
+    debugPrint('ðŸŒŒ EntrÃ©e dans l\'univers spatial...');
 
-    // Démarrer l'animation de fondu
+    // DÃ©marrer l'animation de fondu
     _transitionController.forward();
 
     // Attendre que l'animation soit visible
     await Future.delayed(const Duration(milliseconds: 1500));
 
-    // Activer l'avatar émotionnel
+    // Activer l'avatar Ã©motionnel
     final emotionalService = ref.read(emotionalAvatarServiceProvider.notifier);
     emotionalService.startListeningMode();
 
-    debugPrint('✨ Avatar spatial activé et prêt');
+    debugPrint('âœ¨ Avatar spatial activÃ© et prÃªt');
   }
 
   /// Navigue vers l'interface HomeView amelioree
@@ -118,7 +118,7 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
 
   Widget _buildInitializationOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.8),
+      color: Colors.black.withValues(alpha: 0.8),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -129,16 +129,16 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
             Text(
               'Initialisation de l\'univers spatial...',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 18,
                 fontWeight: FontWeight.w300,
               ),
             ),
             const SizedBox(height: 10),
             Text(
-              'Ric se prépare à vous accueillir',
+              'Ric se prÃ©pare Ã  vous accueillir',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 fontSize: 14,
               ),
             ),
@@ -154,7 +154,7 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
       height: 80,
       child: CircularProgressIndicator(
         strokeWidth: 2,
-        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.withOpacity(0.6)),
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.withValues(alpha: 0.6)),
       ),
     );
   }
@@ -170,25 +170,25 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 Icons.touch_app,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 size: 20,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Touchez l\'avatar pour interagir • Dites "Accueil" pour aller à l\'accueil',
+                  'Touchez l\'avatar pour interagir â€¢ Dites "Accueil" pour aller Ã  l\'accueil',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     fontSize: 12,
                     fontWeight: FontWeight.w300,
                   ),
@@ -207,3 +207,4 @@ class _MainSpatialViewState extends ConsumerState<MainSpatialView>
     super.dispose();
   }
 }
+

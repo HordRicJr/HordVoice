@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'generated/l10n/app_localizations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,9 +26,9 @@ import 'views/home_view.dart';
 import 'views/permissions_view.dart';
 import 'views/login_view.dart';
 import 'views/spatial_voice_onboarding_view.dart';
-import 'views/settings_view.dart';
+
 import 'localization/locale_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as rv;
+
 
 void main() async {
   // Initialisation Flutter
@@ -323,7 +323,7 @@ class _AppInitializerState extends State<AppInitializer>
       setState(() {
         _hasError = true;
         final template = AppLocalizations.of(context)?.errorInitialization ?? 'Error during initialization: {error}';
-        _errorMessage = template.replaceFirst('{error}', e.toString());
+        _errorMessage = template.toString().replaceFirst('{error}', e.toString());
       });
     }
   }

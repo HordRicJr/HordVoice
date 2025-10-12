@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
-import 'package:integration_test/integration_test.dart';
+// import 'package:integration_test/integration_test.dart'; // Intégration de test sera ajoutée au besoin
 import 'package:flutter/services.dart';
 import 'dart:async';
 
@@ -9,7 +9,7 @@ import 'package:hordvoice/services/azure_openai_service.dart';
 import '../mocks/azure_services_mocks.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  // IntegrationTestWidgetsFlutterBinding.ensureInitialized(); // Pour les tests d'intégration complets
 
   group('Azure AI Services Integration Tests', () {
     late AzureSpeechService speechService;

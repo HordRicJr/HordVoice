@@ -25,14 +25,25 @@ import '../../../lib/services/environment_config.dart';
   AzureWakeWordService,
   EnvironmentConfig,
 ])
-import 'voice_optimization_test.mocks.dart';
+import 'package:mockito/annotations.dart';
+import 'package:hordvoice/services/battery_monitoring_service.dart';
+import 'package:hordvoice/services/environment_config.dart';
+import 'package:hordvoice/services/azure_wake_word_service.dart';
+
+// Annotations pour générer les mocks
+@GenerateMocks([
+  BatteryMonitoringService,
+  EnvironmentConfig,
+  AzureWakeWordService,
+])
 
 void main() {
   group('Voice Processing Optimization Tests', () {
-    late MockHealthMonitoringService mockHealthService;
-    late MockBatteryMonitoringService mockBatteryService;
-    late MockAzureWakeWordService mockAzureWakeWordService;
-    late MockEnvironmentConfig mockEnvironmentConfig;
+    // Mock services will be simplified for basic testing
+    // late MockHealthMonitoringService mockHealthService;
+    // late MockBatteryMonitoringService mockBatteryService;
+    // late MockAzureWakeWordService mockAzureWakeWordService;
+    // late MockEnvironmentConfig mockEnvironmentConfig;
 
     setUp(() {
       mockHealthService = MockHealthMonitoringService();

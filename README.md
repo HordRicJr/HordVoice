@@ -8,9 +8,7 @@
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=for-the-badge)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=for-the-badge)](#contributors-)
-
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)
@@ -64,14 +62,13 @@ HordVoice is a cutting-edge voice assistant built with Flutter, powered by Azure
 
 ## ✨ Preview
 
-_(Screenshots coming soon)_
+*(Screenshots coming soon)*
 
 ---
 
 ## 🚀 Features
 
 ### 🎯 Advanced Azure AI Voice Recognition
-
 - **Azure Speech Recognition**: Real-time speech-to-text with high accuracy
 - **Wake Word Detection**: Hands-free activation with "HordVoice"
 - **Continuous Recognition**: Seamless voice interaction
@@ -80,7 +77,6 @@ _(Screenshots coming soon)_
 - **Noise Cancellation**: Advanced audio processing for clear recognition
 
 ### 🧠 Intelligent Natural Language Processing
-
 - **Azure OpenAI Integration**: GPT-powered conversation understanding
 - **Context-Aware Responses**: Smart interpretation of voice commands
 - **Intent Recognition**: Accurate command classification and execution
@@ -88,7 +84,6 @@ _(Screenshots coming soon)_
 - **Smart Fallbacks**: Graceful handling of unrecognized commands
 
 ### 🔊 Premium Text-to-Speech
-
 - **Azure Neural Voices**: High-quality, natural-sounding speech synthesis
 - **Voice Customization**: Multiple voice options and styles
 - **Emotional Expression**: Context-appropriate voice modulation
@@ -96,7 +91,6 @@ _(Screenshots coming soon)_
 - **Flutter TTS Fallback**: Reliable offline voice synthesis
 
 ### 🎵 Inter-App Control & Automation
-
 - **Spotify Integration**: Voice control for music playbook
 - **Calendar Management**: Voice-activated calendar operations
 - **Location Services**: GPS-based contextual responses
@@ -104,7 +98,6 @@ _(Screenshots coming soon)_
 - **Smart Home Integration**: IoT device control capabilities
 
 ### 📊 Real-Time Audio Analytics
-
 - **Voice Waveform Visualization**: Live audio feedback
 - **Volume Level Monitoring**: Automatic gain control
 - **Audio Quality Metrics**: Real-time recognition confidence
@@ -112,7 +105,6 @@ _(Screenshots coming soon)_
 - **Audio Session Management**: Optimized audio pipeline
 
 ### 🔐 Enterprise-Grade Security
-
 - **Secure Configuration**: Environment-based API key management
 - **Local Data Storage**: Privacy-first approach with local caching
 - **Encrypted Storage**: Secure user preferences and voice profiles
@@ -120,7 +112,6 @@ _(Screenshots coming soon)_
 - **Azure Security**: Enterprise-level cloud security standards
 
 ### 🎨 Modern & Intuitive Interface
-
 - **Material Design 3**: Contemporary Android design language
 - **Dark/Light Themes**: Adaptive UI based on system preferences
 - **Smooth Animations**: Fluid transitions and micro-interactions
@@ -128,7 +119,6 @@ _(Screenshots coming soon)_
 - **Accessibility Support**: Screen reader and accessibility features
 
 ### ⚙️ Advanced Configuration
-
 - **Environment Management**: Multiple deployment configurations
 - **API Key Management**: Secure credential handling
 - **Service Toggles**: Enable/disable specific features
@@ -222,7 +212,6 @@ HordVoice follows the **Feature-First Clean Architecture** with Azure AI integra
 - **Native Integration**: Kotlin-based Azure Speech SDK bridge
 
 This architecture enables:
-
 - 📦 Scalable feature development
 - 🔌 Seamless Azure AI service integration
 - 🧪 Comprehensive testing capabilities
@@ -244,28 +233,23 @@ This architecture enables:
 ### 📥 Installation
 
 #### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/HordRicJr/HordVoice.git
 cd HordVoice
 ```
 
 #### 2. Install Dependencies
-
 ```bash
 flutter pub get
 ```
 
 #### 3. Configure Azure Services
-
 Create a `.env` file from the template:
-
 ```bash
 cp .env.example .env
 ```
 
 Fill in your Azure credentials:
-
 ```env
 # Azure Speech Services
 AZURE_SPEECH_KEY=your_azure_speech_key_here
@@ -281,9 +265,7 @@ AZURE_OPENAI_DEPLOYMENT=chat
 ```
 
 #### 4. Configure Android Permissions
-
 Ensure your `android/app/src/main/AndroidManifest.xml` includes:
-
 ```xml
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.INTERNET" />
@@ -294,19 +276,16 @@ Ensure your `android/app/src/main/AndroidManifest.xml` includes:
 #### 5. Run the Application
 
 **Debug Mode**
-
 ```bash
 flutter run
 ```
 
 **Release Mode (APK)**
-
 ```bash
 flutter build apk --release
 ```
 
 **Release Mode (AAB for Play Store)**
-
 ```bash
 flutter build appbundle --release
 ```
@@ -318,34 +297,34 @@ flutter build appbundle --release
 ```yaml
 dependencies:
   # Core Framework
-  flutter_riverpod: 2.6.1 # State management
-  provider: ^6.1.2 # Dependency injection
-
+  flutter_riverpod: 2.6.1                   # State management
+  provider: ^6.1.2                          # Dependency injection
+  
   # Azure AI Services
-  azure_speech_recognition_flutter: ^1.0.0 # Azure Speech Recognition
-  http: 1.5.0 # HTTP client for Azure APIs
-
+  azure_speech_recognition_flutter: ^1.0.0  # Azure Speech Recognition
+  http: 1.5.0                               # HTTP client for Azure APIs
+  
   # Audio Processing
-  flutter_tts: 3.8.5 # Text-to-speech synthesis
-  just_audio: ^0.9.40 # Advanced audio playback
-  audio_session: ^0.1.21 # Audio session management
-  avatar_glow: 2.0.2 # Microphone animation
-
+  flutter_tts: 3.8.5                        # Text-to-speech synthesis
+  just_audio: ^0.9.40                       # Advanced audio playback
+  audio_session: ^0.1.21                    # Audio session management
+  avatar_glow: 2.0.2                        # Microphone animation
+  
   # Data & Storage
-  shared_preferences: 2.5.3 # Local preferences
-  flutter_secure_storage: ^9.2.2 # Secure credential storage
-  hive: 2.2.3 # Local database
-  supabase_flutter: 2.9.1 # Backend integration
-
+  shared_preferences: 2.5.3                 # Local preferences
+  flutter_secure_storage: ^9.2.2            # Secure credential storage
+  hive: 2.2.3                               # Local database
+  supabase_flutter: 2.9.1                   # Backend integration
+  
   # System Integration
-  permission_handler: ^11.3.1 # Permissions management
-  device_info_plus: ^11.0.0 # Device information
-  location: ^8.0.1 # GPS services
-  device_calendar: 4.3.3 # Calendar integration
-
+  permission_handler: ^11.3.1               # Permissions management
+  device_info_plus: ^11.0.0                 # Device information
+  location: ^8.0.1                          # GPS services
+  device_calendar: 4.3.3                    # Calendar integration
+  
   # UI & UX
-  google_fonts: 6.3.0 # Typography
-  url_launcher: 6.2.6 # External app launching
+  google_fonts: 6.3.0                       # Typography
+  url_launcher: 6.2.6                       # External app launching
 ```
 
 ---
@@ -353,19 +332,16 @@ dependencies:
 ## 🌐 Azure Services Integration
 
 ### Azure Speech Services
-
 - **Speech-to-Text**: Real-time voice recognition with custom phrase hints
 - **Text-to-Speech**: Neural voice synthesis with multiple voice options
 - **Wake Word Detection**: Continuous listening for activation phrases
 
 ### Azure OpenAI (Optional)
-
 - **Natural Language Understanding**: Advanced intent recognition
 - **Conversational AI**: Smart responses and context management
 - **Content Generation**: Dynamic response generation
 
 ### Azure Translator (Optional)
-
 - **Multi-language Support**: Real-time translation capabilities
 - **Language Detection**: Automatic language identification
 
@@ -400,7 +376,6 @@ dependencies:
 ## 🏗️ Architecture Details
 
 ### Voice Processing Pipeline
-
 1. **Audio Capture**: Continuous microphone monitoring
 2. **Wake Word Detection**: Azure Speech-based activation
 3. **Speech Recognition**: Real-time STT with phrase hints
@@ -409,14 +384,12 @@ dependencies:
 6. **Text-to-Speech**: Natural voice synthesis and playback
 
 ### Azure Integration
-
 - **Native Bridge**: Kotlin-based Azure Speech SDK integration
 - **Platform Channels**: Flutter-Android communication
 - **Secure Configuration**: Environment-based credential management
 - **Fallback Systems**: Graceful degradation for offline scenarios
 
 ### State Management
-
 - **Riverpod**: Reactive state management for voice interactions
 - **Audio Pipeline State**: Real-time audio processing status
 - **User Preferences**: Persistent configuration storage
@@ -426,144 +399,32 @@ dependencies:
 
 ## 🧪 Testing & Development
 
-### Comprehensive Test Suite
-
-HordVoice includes a comprehensive test suite with >80% coverage target, specifically designed for Azure AI services integration.
-
-#### Test Structure
-
-```
-test/
-├── unit/                     # Unit tests for individual components
-│   └── services/            # Azure AI services unit tests
-├── integration/             # End-to-end integration tests
-│   └── voice_pipeline_integration_test.dart
-├── mocks/                   # Mock implementations
-│   └── azure_services_mocks.dart
-└── README.md               # Testing documentation
-```
-
-#### Run All Tests (Cross-Platform)
-
+### Run Unit Tests
 ```bash
-# Unix/Linux/macOS
-./run_tests.sh
-
-# Windows
-run_tests.bat
-
-# Manual execution
-flutter test --coverage
+flutter test
 ```
 
-#### Unit Tests
-
+### Integration Testing
 ```bash
-# Run all unit tests
-flutter test test/unit/
-
-# Run specific service tests
-flutter test test/unit/services/azure_speech_service_test.dart
-flutter test test/unit/services/azure_openai_service_test.dart
-
-# Run with coverage
-flutter test test/unit/ --coverage
+flutter test integration_test/
 ```
 
-#### Integration Tests
-
-```bash
-# Run complete voice pipeline tests
-flutter test test/integration/
-
-# Run specific integration test
-flutter test test/integration/voice_pipeline_integration_test.dart
-```
-
-#### Test Coverage
-
-```bash
-# Generate coverage report
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-open coverage/html/index.html  # View coverage report
-```
-
-#### Mock Generation
-
-```bash
-# Generate mocks for testing
-flutter packages pub run build_runner build --delete-conflicting-outputs
-```
-
-#### Code Analysis
-
+### Code Analysis
 ```bash
 flutter analyze
 ```
 
-#### Azure Service Testing
-
+### Azure Service Testing
 ```bash
 # Test Azure Speech connection
 flutter run --debug -d android
 # Check logs for Azure service initialization
-
-# Test with different configurations
-flutter run --dart-define=ENVIRONMENT=development
-flutter run --dart-define=AZURE_SPEECH_MOCK=true
 ```
 
-### Test Features
-
-#### 🎯 Azure AI Services Unit Tests
-
-- **Speech Recognition Service**: Initialization, recognition, error handling, stream management
-- **OpenAI Service**: Intent analysis, response generation, emotion analysis, speech optimization
-- **Environment Configuration**: Credential management, fallback scenarios
-- **Circuit Breaker**: Resilience patterns, failure recovery
-
-#### 🔄 Integration Tests
-
-- **Complete Voice Pipeline**: Speech recognition → Intent analysis → Response generation → TTS
-- **Error Recovery**: Graceful handling of service failures
-- **Performance Testing**: Concurrent requests, memory management
-- **Stream Processing**: Real-time audio stream handling
-
-#### 🎭 Mock Services
-
-- **Azure Speech Responses**: Realistic test scenarios
-- **OpenAI API Responses**: Various intent types and error conditions
-- **Environment Configurations**: Different deployment scenarios
-- **Error Scenarios**: Network failures, authentication errors
-
-#### 📊 Coverage Targets
-
-- **Overall Coverage**: ≥80% line coverage
-- **Azure Speech Service**: ≥85% coverage
-- **Azure OpenAI Service**: ≥85% coverage
-- **Critical Services**: ≥80% coverage
-
-### Continuous Integration
-
-All tests run automatically on:
-
-- 🔄 Pull Request creation
-- 🚀 Push to main branch
-- 📅 Scheduled nightly builds
-- 🎃 Hacktoberfest contributions
-
 ### Environment Configuration
-
 ```bash
-# Development environment
+# Validate configuration
 flutter run --dart-define=ENVIRONMENT=development
-
-# Testing environment
-flutter run --dart-define=ENVIRONMENT=test
-
-# Production environment
-flutter run --dart-define=ENVIRONMENT=production
 ```
 
 ---
@@ -581,7 +442,6 @@ flutter run --dart-define=ENVIRONMENT=production
 ## 👨‍💻 Author
 
 **HordRicJr**
-
 - GitHub: [https://github.com/HordRicJr](https://github.com/HordRicJr)
 - Email: assounrodrigue5@gmail.com
 
@@ -595,27 +455,24 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## 🎃 Hacktoberfest 2025
 
-**HordVoice is proudly participating in Hacktoberfest 2025!**
+**HordVoice is proudly participating in Hacktoberfest 2025!** 
 
 We're looking for meaningful contributions that help improve our AI-powered voice assistant. Whether you're a seasoned developer or just starting out, there's a place for you in our community.
 
 ### 🎯 **How to Contribute**
 
 1. **🔍 Find an Issue**
-
    - Browse our [Hacktoberfest issues](https://github.com/HordRicJr/HordVoice/issues?q=is%3Aissue+is%3Aopen+label%3Ahacktoberfest)
    - Look for [Good First Issues](https://github.com/HordRicJr/HordVoice/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) if you're new
    - Comment on an issue to claim it
 
 2. **🍴 Fork & Clone**
-
    ```bash
    git clone https://github.com/YourUsername/HordVoice.git
    cd HordVoice
    ```
 
 3. **🌟 Create Your Feature**
-
    ```bash
    git checkout -b feature/your-amazing-feature
    # Make your changes
@@ -630,19 +487,18 @@ We're looking for meaningful contributions that help improve our AI-powered voic
 
 ### 🏷️ **Contribution Areas**
 
-| 🎯 **Area**          | 🔰 **Difficulty** | 📝 **Examples**                       |
-| -------------------- | ----------------- | ------------------------------------- |
-| 🐛 **Bug Fixes**     | Beginner          | Voice recognition errors, UI glitches |
-| ✨ **Features**      | Intermediate      | New voice commands, UI improvements   |
-| 🤖 **Azure AI**      | Advanced          | Speech recognition, NLP enhancements  |
-| 📚 **Documentation** | Beginner          | README updates, code comments         |
-| 🧪 **Testing**       | Intermediate      | Unit tests, integration tests         |
-| 🌐 **Localization**  | Beginner          | Translations, cultural adaptations    |
-| ♿ **Accessibility** | Intermediate      | Screen reader support, voice feedback |
-| 🔐 **Security**      | Advanced          | API security, data encryption         |
+| 🎯 **Area** | 🔰 **Difficulty** | 📝 **Examples** |
+|-------------|-------------------|-----------------|
+| 🐛 **Bug Fixes** | Beginner | Voice recognition errors, UI glitches |
+| ✨ **Features** | Intermediate | New voice commands, UI improvements |
+| 🤖 **Azure AI** | Advanced | Speech recognition, NLP enhancements |
+| 📚 **Documentation** | Beginner | README updates, code comments |
+| 🧪 **Testing** | Intermediate | Unit tests, integration tests |
+| 🌐 **Localization** | Beginner | Translations, cultural adaptations |
+| ♿ **Accessibility** | Intermediate | Screen reader support, voice feedback |
+| 🔐 **Security** | Advanced | API security, data encryption |
 
 ### 🏆 **Hacktoberfest Rewards**
-
 - 🎁 Official Hacktoberfest swag for 4+ quality PRs
 - 🌟 Recognition in our contributors list
 - 🏅 Special badges for outstanding contributions
@@ -653,7 +509,6 @@ We're looking for meaningful contributions that help improve our AI-powered voic
 We love contributions from the community! Here's how you can help:
 
 ### 🚀 **Quick Start**
-
 1. ⭐ **Star this repository** to show your support
 2. 📖 Read our [Contributing Guidelines](CONTRIBUTING.md)
 3. 🍴 Fork the project and create your feature branch
@@ -662,7 +517,6 @@ We love contributions from the community! Here's how you can help:
 6. 📤 Submit a Pull Request with a clear description
 
 ### 📋 **Before You Contribute**
-
 - [ ] Read the [Contributing Guidelines](CONTRIBUTING.md)
 - [ ] Check existing [issues](https://github.com/HordRicJr/HordVoice/issues) and [PRs](https://github.com/HordRicJr/HordVoice/pulls)
 - [ ] Set up your development environment
@@ -698,23 +552,19 @@ HordVoice is built with ❤️ by the open source community. We believe in:
 Join our growing community of voice AI enthusiasts!
 
 ### 🆘 **Get Help**
-
 - 💬 [GitHub Discussions](https://github.com/HordRicJr/HordVoice/discussions) - Ask questions, share ideas
 - 🐛 [Report Issues](https://github.com/HordRicJr/HordVoice/issues/new/choose) - Bug reports and feature requests
 - 📧 [Email Support](mailto:assounrodrigue5@gmail.com) - Direct contact for urgent matters
 - 📖 [Documentation](https://hordricjr.github.io/HordVoice/) - Comprehensive guides and API docs
 
 ### 🔗 **Stay Connected**
-
 - 🌟 Star this repository to stay updated
 - 👀 Watch for notifications on new releases
 - 🍴 Fork to create your own version
 - 📢 Share with your network
 
 ### 💡 **Help Us Improve**
-
 Your feedback matters! Help us make HordVoice better:
-
 - ⭐ Rate the project on GitHub
 - 📝 Write reviews and blog posts
 - 🐦 Share on social media
@@ -792,7 +642,6 @@ Ce projet suit la spécification [all-contributors](https://github.com/all-contr
 ## � Roadmap
 
 ### 🎯 **Current Focus (Q4 2025)**
-
 - [ ] 🎃 Hacktoberfest 2025 participation
 - [ ] 📱 Google Play Store release
 - [ ] 🌍 Multi-language support expansion
@@ -800,7 +649,6 @@ Ce projet suit la spécification [all-contributors](https://github.com/all-contr
 - [ ] 🤖 Enhanced AI personality system
 
 ### 🔮 **Upcoming Features**
-
 - [ ] 🍎 iOS support with SwiftUI
 - [ ] 🌐 Web app version
 - [ ] 🏠 Smart home integration (Google Home, Alexa)
@@ -810,7 +658,6 @@ Ce projet suit la spécification [all-contributors](https://github.com/all-contr
 - [ ] 🎨 Custom wake word training
 
 ### 💡 **Long-term Vision**
-
 - 🌟 Become the leading open-source voice assistant
 - 🤖 Advanced conversational AI capabilities
 - 🌍 Support for 50+ languages
@@ -820,13 +667,11 @@ Ce projet suit la spécification [all-contributors](https://github.com/all-contr
 ## 📈 **Project Metrics**
 
 <!-- GitHub metrics will be automatically updated -->
-
 ![Contributor Activity](https://repobeats.axiom.co/api/embed/HordRicJr/HordVoice.svg "Repository analytics image")
 
 ## �📝 Changelog
 
 ### Version 1.0.0 (October 11, 2025) 🎉
-
 - ✨ **First public release** with full Azure AI integration
 - 🎤 **Advanced Azure Speech Recognition** with wake word detection
 - 🧠 **Azure OpenAI integration** for intelligent conversation
@@ -865,7 +710,7 @@ If HordVoice helps you or your project, please consider:
 [![GitHub Profile](https://img.shields.io/badge/GitHub-HordRicJr-181717?style=for-the-badge&logo=github)](https://github.com/HordRicJr)
 [![Email](https://img.shields.io/badge/Email-assounrodrigue5%40gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:assounrodrigue5@gmail.com)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/hordric)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://x.com/assounrodrigue)
+[![Twitter](https://img.shields.io/badge/Twitter-Follow-1DA1F2?style=for-the-badge&logo=x&logoColor=white)](https://x.com/RodrigueASSOUN)
 
 </div>
 
@@ -879,7 +724,7 @@ Made with ❤️ by [HordRicJr](https://github.com/HordRicJr) and the **open sou
 
 ### 🎃 **Hacktoberfest 2025** • 🌟 **Open Source** • 🤖 **Azure AI Powered** • 🔓 **MIT Licensed**
 
-_"Empowering voices, enabling futures"_
+*"Empowering voices, enabling futures"*
 
 ---
 
