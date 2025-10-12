@@ -11,8 +11,8 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=for-the-badge)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)
-![Flutter](https://img.shields.io/badge/Flutter-3.32.8-02569B?logo=flutter&style=flat-square)
+![Version](https://img.shields.io/badge/version-1.0.0+1-blue.svg?style=flat-square)
+![Flutter](https://img.shields.io/badge/Flutter-3.22.x-02569B?logo=flutter&style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Android-brightgreen.svg?style=flat-square)
 ![Azure AI](https://img.shields.io/badge/Azure%20AI-Powered-0089D0?logo=microsoft-azure&style=flat-square)
 
@@ -66,140 +66,169 @@ HordVoice is a cutting-edge voice assistant built with Flutter, powered by Azure
 
 ---
 
-## 🚀 Features
+## 🚀 Advanced AI Features
 
-### 🎯 Advanced Azure AI Voice Recognition
-- **Azure Speech Recognition**: Real-time speech-to-text with high accuracy
-- **Wake Word Detection**: Hands-free activation with "HordVoice"
-- **Continuous Recognition**: Seamless voice interaction
-- **Phrase Hints System**: Context-aware recognition optimization
-- **Multi-language Support**: French (fr-FR) with extensible language system
-- **Noise Cancellation**: Advanced audio processing for clear recognition
+HordVoice delivers cutting-edge capabilities through **54 specialized services** powering a revolutionary voice experience.
 
-### 🧠 Intelligent Natural Language Processing
-- **Azure OpenAI Integration**: GPT-powered conversation understanding
-- **Context-Aware Responses**: Smart interpretation of voice commands
-- **Intent Recognition**: Accurate command classification and execution
-- **Multi-turn Conversations**: Maintain context across interactions
-- **Smart Fallbacks**: Graceful handling of unrecognized commands
+### 🎤 **Azure AI Voice Engine**
+- **Azure Speech Recognition**: Enterprise-grade speech-to-text with 95%+ accuracy
+- **Azure OpenAI Integration**: GPT-4 powered conversational AI with persistent memory
+- **Smart Wake Word Detection**: Hands-free activation with "HordVoice" trigger
+- **Phrase Hints Optimization**: Dynamic vocabulary adaptation for context-aware recognition
+- **Multi-Language Intelligence**: Seamless language detection and switching
 
-### 🔊 Premium Text-to-Speech
-- **Azure Neural Voices**: High-quality, natural-sounding speech synthesis
-- **Voice Customization**: Multiple voice options and styles
-- **Emotional Expression**: Context-appropriate voice modulation
-- **Speed & Pitch Control**: Personalized speech parameters
-- **Flutter TTS Fallback**: Reliable offline voice synthesis
+### 🎭 **Emotion Intelligence & Avatar System**  
+- **Real-Time Facial Emotion Analysis**: Camera-based emotion detection using Google ML Kit
+- **Voice Emotion Recognition**: Advanced sentiment analysis from speech patterns
+- **Animated AI Avatar**: 3D responsive avatar with emotional expressions (Rive animations)
+- **Spatial Avatar Interface**: Revolutionary AR-like 3D voice interaction paradigm
+- **Emotional Context Memory**: AI remembers and adapts to user emotional patterns
 
-### 🎵 Inter-App Control & Automation
-- **Spotify Integration**: Voice control for music playbook
-- **Calendar Management**: Voice-activated calendar operations
-- **Location Services**: GPS-based contextual responses
-- **App Launcher**: Voice-controlled app navigation
-- **Smart Home Integration**: IoT device control capabilities
+### 🌌 **Spatial Computing Interface**
+- **Spatial Overlay System**: Breakthrough 3D voice interaction layer overlaying reality
+- **Immersive Voice Onboarding**: Spatial setup experience with progressive permissions
+- **Transition Animations**: Fluid 3D transitions between interface states
+- **Spatial Audio Visualization**: Professional waveform rendering in 3D space
 
-### 📊 Real-Time Audio Analytics
-- **Voice Waveform Visualization**: Live audio feedback
-- **Volume Level Monitoring**: Automatic gain control
-- **Audio Quality Metrics**: Real-time recognition confidence
-- **Background Processing**: Continuous voice monitoring
-- **Audio Session Management**: Optimized audio pipeline
+### 🎵 **Professional Audio Intelligence**
+- **Advanced Audio Pipeline**: Multi-stage processing with real-time compression optimization
+- **Voice Calibration System**: Personalized voice training and acoustic optimization
+- **Karaoke-Grade Voice Tuning**: Professional voice enhancement with pitch correction
+- **Real-Time Voice Effects**: Dynamic audio processing and voice modulation
+- **Audio Buffer Management**: Optimized streaming for ultra-low latency interaction
 
-### 🔐 Enterprise-Grade Security
-- **Secure Configuration**: Environment-based API key management
-- **Local Data Storage**: Privacy-first approach with local caching
-- **Encrypted Storage**: Secure user preferences and voice profiles
-- **Permission Management**: Granular access control
-- **Azure Security**: Enterprise-level cloud security standards
+### 📱 **Deep System Integration**
+- **Phone Health Monitoring**: Comprehensive device performance and diagnostics tracking
+- **Battery-Aware AI**: Dynamic feature adaptation based on power levels and usage patterns
+- **Native Telephony Bridge**: Direct integration with Android telephony stack
+- **Quick Settings Control**: Voice-activated system settings and configuration management
+- **Background Service Optimization**: Persistent AI operation with minimal battery impact
 
-### 🎨 Modern & Intuitive Interface
-- **Material Design 3**: Contemporary Android design language
-- **Dark/Light Themes**: Adaptive UI based on system preferences
-- **Smooth Animations**: Fluid transitions and micro-interactions
-- **Voice Activity Indicators**: Visual feedback for voice interactions
-- **Accessibility Support**: Screen reader and accessibility features
+### 🔐 **Progressive Security & Permissions**
+- **Advanced Permission Manager**: Context-aware, intelligent permission request system
+- **Progressive Permission Flow**: Gradual access escalation based on user trust and usage
+- **Secure Authentication**: Multi-factor authentication with voice biometric verification
+- **Privacy-First Architecture**: Local-first processing with optional cloud enhancement
 
-### ⚙️ Advanced Configuration
-- **Environment Management**: Multiple deployment configurations
-- **API Key Management**: Secure credential handling
-- **Service Toggles**: Enable/disable specific features
-- **Performance Tuning**: Adjustable recognition parameters
-- **Debug & Testing**: Comprehensive development tools
+### 🌐 **Rich Ecosystem Integration**
+- **Spotify Deep Integration**: Complete music control with natural voice commands
+- **Weather Intelligence**: Context-aware weather responses with location-based alerts
+- **News Aggregation**: AI-curated news delivery with voice summaries and categorization
+- **Calendar AI**: Intelligent meeting management, scheduling, and reminder system
+- **Location Context**: GPS-aware responses and location-based command triggers
+
+### ⚡ **Enterprise Performance & Reliability**
+- **Crash Prevention System**: Proactive error detection with automatic recovery mechanisms
+- **Circuit Breaker Pattern**: Service resilience with intelligent failover and retry logic
+- **Health Monitoring**: Real-time system diagnostics and performance metrics tracking
+- **Memory Optimization**: Advanced memory management for continuous 24/7 operation
+- **Voice Memory Persistence**: Cross-session conversation context and learning retention
+
+### 🎪 **Hidden Power Features**
+- **Secret Commands System**: Advanced power-user voice commands and shortcuts
+- **Multilingual Service**: Seamless multi-language conversation and content processing  
+- **Voice Session Management**: Advanced conversation state and context management
+- **Integration Testing Suite**: Comprehensive automated service validation and testing
 
 ---
 
-## 📂 Project Structure
+## 📂 Real Project Architecture
+
+HordVoice follows a **service-oriented architecture** with 50+ specialized AI services powering advanced capabilities.
 
 ```
 lib/
-├── main.dart                              : Application entry point
+├── main.dart                             # Application entry point and Riverpod initialization
 │
-├── core/                                  : Reusable base code
-│   ├── constants/
-│   │   └── constants.dart                 : Global constants and configurations
-│   └── config/
-│       └── app_initializer.dart           : App initialization and dependency injection
+├── services/ (54 services)               # 🧠 AI-powered service ecosystem
+│   ├── 🎤 AZURE AI SERVICES
+│   │   ├── azure_speech_service.dart        # Speech-to-Text with high accuracy
+│   │   ├── azure_openai_service.dart        # GPT-powered conversations
+│   │   ├── azure_wake_word_service.dart     # Hands-free activation
+│   │   └── azure_speech_phrase_hints_service.dart # Context optimization
+│   │
+│   ├── 🎭 EMOTION & AVATAR SERVICES  
+│   │   ├── camera_emotion_analysis_service.dart # Facial emotion detection
+│   │   ├── voice_emotion_detection_service.dart # Voice sentiment analysis
+│   │   ├── emotional_avatar_service.dart    # Emotion-responsive avatar
+│   │   └── realtime_avatar_service.dart     # Live avatar animations
+│   │
+│   ├── 🌌 SPATIAL & OVERLAY SERVICES
+│   │   ├── spatial_overlay_service.dart     # AR-like spatial interface
+│   │   └── transition_animation_service.dart # Smooth UI transitions
+│   │
+│   ├── 🎵 AUDIO & VOICE SERVICES
+│   │   ├── audio_pipeline_service.dart      # Core audio processing
+│   │   ├── voice_calibration_service.dart   # Voice training system
+│   │   ├── karaoke_calibration_service.dart # Advanced voice tuning
+│   │   ├── voice_effects_service.dart       # Real-time voice effects
+│   │   ├── voice_selection_service.dart     # Voice profile management
+│   │   └── audio_compression_service.dart   # Audio optimization
+│   │
+│   ├── 📱 SYSTEM INTEGRATION SERVICES
+│   │   ├── phone_monitoring_service.dart    # Device health tracking
+│   │   ├── battery_monitoring_service.dart  # Power-aware optimization
+│   │   ├── native_telephony_service.dart    # Native call integration
+│   │   ├── phone_settings_service.dart      # System settings control
+│   │   └── quick_settings_service.dart      # Fast access controls
+│   │
+│   ├── 🔐 SECURITY & PERMISSIONS
+│   │   ├── advanced_permission_manager.dart # Smart permission handling
+│   │   ├── progressive_permission_service.dart # Gradual permission flow
+│   │   └── auth_service.dart                # User authentication
+│   │
+│   ├── 🌐 EXTERNAL API SERVICES
+│   │   ├── spotify_service.dart             # Music streaming control
+│   │   ├── weather_service.dart             # Weather information
+│   │   ├── news_service.dart                # News aggregation
+│   │   └── calendar_service.dart            # Calendar management
+│   │
+│   └── ⚡ PERFORMANCE & RELIABILITY
+│       ├── crash_prevention_system.dart    # Error recovery
+│       ├── circuit_breaker.dart            # Service resilience
+│       ├── health_monitoring_service.dart  # System health checks
+│       └── voice_memory_optimization_service.dart # Memory management
 │
-├── features/                              : Features by domain
-│   ├── voice/                             : Voice interaction core
-│   │   ├── pages/
-│   │   │   ├── voice_home_page.dart       : Main voice interface
-│   │   │   └── voice_settings_page.dart   : Voice configuration
-│   │   └── widgets/
-│   │       ├── voice_waveform.dart        : Audio visualization
-│   │       └── voice_controls.dart        : Voice control buttons
-│   │
-│   ├── apps/                              : Inter-app integration
-│   │   ├── services/
-│   │   │   ├── spotify_service.dart       : Spotify API integration
-│   │   │   └── calendar_service.dart      : Calendar management
-│   │   └── pages/
-│   │       └── app_control_page.dart      : App control interface
-│   │
-│   ├── settings/                          : Settings and configuration
-│   │   └── pages/
-│   │       ├── settings_page.dart         : Main settings
-│   │       ├── voice_profile_page.dart    : Voice personalization
-│   │       └── privacy_policy_page.dart   : Privacy policy
-│   │
-│   └── onboarding/                        : First-time user experience
-│       └── pages/
-│           ├── welcome_page.dart          : App introduction
-│           ├── voice_setup_page.dart      : Voice calibration
-│           └── permissions_page.dart      : Permission requests
+├── controllers/ (2 controllers)          # 🎮 Lightweight state orchestration
+│   ├── voice_controller.dart               # Main voice interaction logic
+│   └── persistent_ai_controller.dart       # Cross-session AI memory
 │
-└── shared/                                : Shared resources
-    ├── models/
-    │   ├── voice_models.dart              : Voice interaction data models
-    │   ├── app_models.dart                : App integration models
-    │   └── user_models.dart               : User profile models
-    │
-    ├── services/                          : Business services
-    │   ├── azure_speech_service.dart      : Azure Speech Recognition
-    │   ├── azure_openai_service.dart      : Azure OpenAI integration
-    │   ├── audio_pipeline_service.dart    : Audio processing pipeline
-    │   ├── wake_word_service.dart         : Wake word detection
-    │   ├── voice_management_service.dart  : Voice profile management
-    │   ├── environment_config.dart        : Configuration management
-    │   ├── permission_manager_service.dart: Permissions handling
-    │   └── integration_test_service.dart  : Service testing suite
-    │
-    └── widgets/                           : Shared UI components
-        ├── voice_indicator.dart           : Voice activity indicator
-        ├── audio_visualizer.dart          : Audio waveform display
-        └── permission_dialog.dart         : Permission request dialogs
+├── views/ (8 views)                      # 🎨 Modern spatial UI
+│   ├── main_spatial_view.dart              # Primary 3D voice interface
+│   ├── spatial_voice_onboarding_view.dart  # Interactive setup experience
+│   ├── home_view.dart                      # Traditional dashboard
+│   ├── settings_view.dart                  # Configuration panel
+│   ├── permissions_view.dart               # Permission management
+│   ├── login_view.dart & register_view.dart # Authentication flows
+│   └── quick_setting_widget.dart           # Quick access controls
+│
+├── widgets/ (8 widgets)                  # 🎭 Specialized UI components
+│   ├── spacial_avatar_view.dart            # 3D AI avatar rendering
+│   ├── animated_avatar.dart                # Avatar animation system
+│   ├── audio_waveform.dart                 # Real-time audio visualization
+│   ├── audio_waveform_optimized.dart       # Performance-optimized waveforms
+│   ├── voice_selector.dart                 # Voice profile chooser
+│   └── animated_splash_screen.dart         # App launch animation
+│
+├── models/ (3 models)                    # 📊 Type-safe data structures
+│   ├── voice_models.dart                   # Voice recognition & TTS models
+│   ├── ai_models.dart                      # AI conversation & memory models
+│   └── user_profile.dart                   # User preferences & settings
+│
+├── theme/                                # 🎨 Design system & styling
+├── painters/                             # 🖌️ Custom UI painters
+├── l10n/                                 # 🌍 Multi-language support
+└── generated/                            # 🔧 Auto-generated code
 
-android/
-├── app/
-│   ├── src/main/kotlin/                   : Native Android integration
-│   │   └── MainActivity.kt                : Azure Speech SDK native bridge
-│   ├── build.gradle                       : Android build configuration
-│   └── src/main/                          : Android resources and manifests
-└── gradle/                                : Gradle configuration
+android/ (Native integration)
+├── app/build.gradle.kts                  # Android build configuration
+├── app/proguard-rules.pro                # Code shrinking rules
+└── app/src/main/kotlin/                  # Native Azure Speech SDK bridge
 
 assets/
-├── audio/                                 : Audio samples and sounds
-├── images/                                : App icons and illustrations
-└── sounds/                                : System sounds and notifications
+├── images/                               # App icons & illustrations
+├── audio/                                # Audio samples & sounds
+└── sounds/                               # System notification sounds
 ```
 
 ### 🏗️ Architecture
@@ -217,6 +246,61 @@ This architecture enables:
 - 🧪 Comprehensive testing capabilities
 - 👥 Efficient team collaboration
 - 🚀 Easy deployment and maintenance
+
+---
+
+## 🛠️ Tech Stack
+
+### 🏗️ **Core Framework**
+- **Flutter 3.22.x**: Cross-platform mobile development framework  
+- **Dart 3.8.0+**: Modern programming language with null safety
+- **Riverpod 2.6.1**: Reactive state management and dependency injection
+
+### 🤖 **AI & Machine Learning**
+- **Azure Speech Recognition 1.0.2**: Enterprise speech-to-text with 95%+ accuracy
+- **Azure OpenAI**: GPT-4 integration for conversational AI
+- **Google ML Kit 0.10.0**: On-device facial emotion detection
+- **TensorFlow Lite 0.10.4**: Local machine learning model execution
+- **Flutter Azure TTS 1.0.0**: Premium neural voice synthesis
+
+### 🎵 **Audio Processing**
+- **Just Audio 0.9.40**: Professional audio playback and streaming
+- **Audio Session 0.1.21**: System-level audio session management  
+- **Flutter Sound 9.16.3**: Advanced audio recording and processing
+- **Audio Waveforms 1.1.6**: Real-time audio visualization
+- **Mic Stream Recorder 1.1.2**: Continuous audio stream processing
+
+### 📊 **Data & Storage**
+- **Supabase Flutter 2.9.1**: Backend-as-a-Service with PostgreSQL
+- **Hive 2.2.3**: Lightning-fast local NoSQL database
+- **Flutter Secure Storage 9.2.2**: Encrypted credential storage
+- **Shared Preferences 2.5.3**: User preference persistence
+
+### 🎨 **UI & Animation**
+- **Google Fonts 6.3.0**: Beautiful typography system
+- **Rive 0.13.15**: Advanced 2D/3D animations for AI avatar
+- **Lottie 3.1.3**: Smooth motion graphics and micro-interactions
+- **Flutter Animate 4.5.0**: Powerful animation framework
+- **Avatar Glow 2.0.2**: Voice activity visualization effects
+
+### 📱 **System Integration**
+- **Permission Handler 11.3.1**: Advanced permission management
+- **Device Info Plus 11.0.0**: Comprehensive device information
+- **Battery Plus 6.2.2**: Battery status and optimization
+- **App Usage 4.0.1**: Application usage analytics
+- **Flutter Background Service 5.1.0**: Persistent background operation
+
+### 🌍 **Location & External APIs**
+- **Geolocator 10.1.0**: High-accuracy GPS positioning
+- **Device Calendar 4.3.3**: Native calendar integration
+- **Google Sign-In 6.2.1**: Authentication and user management
+- **Flutter WebRTC 1.0.0**: Real-time communication capabilities
+
+### 🔧 **Development & Testing**
+- **Logger 2.6.1**: Advanced logging and debugging
+- **Mockito 5.4.4**: Comprehensive testing framework
+- **HTTP Mock Adapter 0.6.1**: API testing and mocking
+- **Flutter Lints 5.0.0**: Code quality and style enforcement
 
 ---
 
