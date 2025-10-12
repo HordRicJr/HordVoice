@@ -68,39 +68,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String get retry => 'أعد المحاولة';
 
   @override
-  String get preparingInterface => 'Preparing interface...';
+  String get preparingInterface => 'جارٍ تحضير الواجهة...';
 
   @override
-  String get readyInitializingBackground => 'Ready! Initializing in background...';
+  String get readyInitializingBackground => 'جاهز! جارٍ التهيئة في الخلفية...';
 
   @override
-  String get interfaceReadyDegraded => 'Interface ready (degraded mode)';
+  String get interfaceReadyDegraded => 'الواجهة جاهزة (الوضع المتدهور)';
 
   @override
-  String get ricIsListening => 'Ric is listening from the spatial universe...';
+  String get ricIsListening => 'ريك يستمع من الكون المكاني...';
 
   @override
-  String get spatialProcessing => 'Processing in spatial universe...';
+  String get spatialProcessing => 'جارٍ المعالجة في الكون المكاني...';
 
   @override
-  String get spatialReady => 'Ready! Say \'Hey Ric\' in the spatial universe';
+  String get spatialReady => 'جاهز! قل \'Hey Ric\' في الكون المكاني';
 
   @override
   String spatialListeningError(Object error) {
-    return 'Spatial listening error: $error';
+    return 'خطأ في الاستماع المكاني: $error';
   }
 
   @override
   String stopError(Object error) {
-    return 'Stop error: $error';
+    return 'خطأ في التوقف: $error';
   }
 
   @override
-  String get ricConnectedSpatial => 'Ric is connected in the spatial universe';
+  String get ricConnectedSpatial => 'ريك متصل في الكون المكاني';
 
   @override
-  String get spatialModeAvailable => 'Spatial mode available';
+  String get spatialModeAvailable => 'الوضع المكاني متاح';
 
   @override
-  String get listeningInSpatial => 'Listening in the spatial universe...';
+  String get listeningInSpatial => 'جارٍ الاستماع في الكون المكاني...';
 }

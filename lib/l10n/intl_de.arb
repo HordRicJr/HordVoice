@@ -18,5 +18,16 @@
   "langArabic": "Arabisch",
   "listenHint": "Sagen Sie 'Hey Ric', um das Zuhören zu starten",
   "errorInitialization": "Fehler bei der Initialisierung: {error}",
-  "retry": "Erneut versuchen"
+  "retry": "Erneut versuchen",
+  "preparingInterface": "Interface wird vorbereitet...",
+  "readyInitializingBackground": "Bereit! Initialisierung im Hintergrund...",
+  "interfaceReadyDegraded": "Interface bereit (degradierter Modus)",
+  "ricIsListening": "Ric hört aus dem räumlichen Universum zu...",
+  "spatialProcessing": "Verarbeitung im räumlichen Universum...",
+  "spatialReady": "Bereit! Sagen Sie 'Hey Ric' im räumlichen Universum",
+  "spatialListeningError": "Räumlicher Hörfehler: {error}",
+  "stopError": "Stoppfehler: {error}",
+  "ricConnectedSpatial": "Ric ist im räumlichen Universum verbunden",
+  "spatialModeAvailable": "Räumlicher Modus verfügbar",
+  "listeningInSpatial": "Hören im räumlichen Universum..."
 }
