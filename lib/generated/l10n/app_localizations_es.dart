@@ -68,39 +68,39 @@ class AppLocalizationsEs extends AppLocalizations {
   String get retry => 'Reintentar';
 
   @override
-  String get preparingInterface => 'Preparing interface...';
+  String get preparingInterface => 'Preparando la interfaz...';
 
   @override
-  String get readyInitializingBackground => 'Ready! Initializing in background...';
+  String get readyInitializingBackground => '¡Listo! Inicializando en segundo plano...';
 
   @override
-  String get interfaceReadyDegraded => 'Interface ready (degraded mode)';
+  String get interfaceReadyDegraded => 'Interfaz lista (modo degradado)';
 
   @override
-  String get ricIsListening => 'Ric is listening from the spatial universe...';
+  String get ricIsListening => 'Ric está escuchando desde el universo espacial...';
 
   @override
-  String get spatialProcessing => 'Processing in spatial universe...';
+  String get spatialProcessing => 'Procesando en el universo espacial...';
 
   @override
-  String get spatialReady => 'Ready! Say \'Hey Ric\' in the spatial universe';
+  String get spatialReady => '¡Listo! Di \'Hey Ric\' en el universo espacial';
 
   @override
   String spatialListeningError(Object error) {
-    return 'Spatial listening error: $error';
+    return 'Error de escucha espacial: $error';
   }
 
   @override
   String stopError(Object error) {
-    return 'Stop error: $error';
+    return 'Error de parada: $error';
   }
 
   @override
-  String get ricConnectedSpatial => 'Ric is connected in the spatial universe';
+  String get ricConnectedSpatial => 'Ric está conectado en el universo espacial';
 
   @override
-  String get spatialModeAvailable => 'Spatial mode available';
+  String get spatialModeAvailable => 'Modo espacial disponible';
 
   @override
-  String get listeningInSpatial => 'Listening in the spatial universe...';
+  String get listeningInSpatial => 'Escuchando en el universo espacial...';
 }
