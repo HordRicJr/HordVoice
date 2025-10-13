@@ -62,7 +62,7 @@ dependencies:
   share_plus: ^10.1.2
 
   # NAVIGATION AVANCÉE
-  flutter_map: ^7.0.2
+  flutter_map: ^8.2.2
   latlong2: ^0.9.1
 
   # AUDIO AVANCÉ - Packages compatibles Android 14+
