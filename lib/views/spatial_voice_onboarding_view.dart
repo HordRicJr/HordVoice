@@ -397,9 +397,9 @@ class _SpatialVoiceOnboardingViewState
     if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
       _userInteractionCompleter!.complete();
     }
-    
+
     _userInteractionCompleter = Completer<void>();
-    
+
     // Attendre une vraie interaction utilisateur (tap, vocal, etc.)
     try {
       await _userInteractionCompleter!.future.timeout(
@@ -427,9 +427,9 @@ class _SpatialVoiceOnboardingViewState
     if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
       _voiceChoiceCompleter!.complete("default");
     }
-    
+
     _voiceChoiceCompleter = Completer<String>();
-    
+
     setState(() {
       _isListening = true;
     });
@@ -456,17 +456,10 @@ class _SpatialVoiceOnboardingViewState
       setState(() {
         _isListening = false;
       });
-      
+
       await _speakWithSpatialEffects(
         'Je vais utiliser la voix par défaut.',
       );
-    }
-  }
-
-  /// Méthode appelée quand l'utilisateur fait un choix vocal
-  void _onVoiceChoice(String choice) {
-    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
-      _voiceChoiceCompleter!.complete(choice);
     }
   }
 
@@ -535,6 +528,10 @@ class _SpatialVoiceOnboardingViewState
 
             // Overlay de chargement
             if (!_isInitialized) _buildLoadingOverlay(),
+
+            // Hint pour interaction tactile
+            if (_isInitialized && (_isListening || _waitingForUserInput))
+              _buildTapHint(),
           ],
         ),
       ),
@@ -695,7 +692,7 @@ class _SpatialVoiceOnboardingViewState
         return Transform.scale(
           scale: 1.0 + (_interactionPulse.value * 0.1),
           child: ElevatedButton(
-            onPressed: _triggerContinue,
+            onPressed: _onUserInteraction,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue.withOpacity(0.8),
               foregroundColor: Colors.white,
@@ -826,13 +823,13 @@ class _SpatialVoiceOnboardingViewState
     if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
       _voiceChoiceCompleter!.complete("default");
     }
-    
+
     // Dispose des animations
     _universeController.dispose();
     _avatarController.dispose();
     _stepsController.dispose();
     _interactionController.dispose();
-    
+
     super.dispose();
   }
 }
