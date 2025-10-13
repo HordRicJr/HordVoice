@@ -20,6 +20,106 @@ class PhoneSettingsService {
     }
   }
 
+  /// Ouvrir les paramètres spécifiques pour une permission
+  Future<bool> openPermissionSpecificSettings(Permission permission) async {
+    try {
+      switch (permission) {
+        case Permission.microphone:
+          await AppSettings.openAppSettings(type: AppSettingsType.settings);
+          return true;
+        case Permission.speech:
+          await AppSettings.openAppSettings(type: AppSettingsType.accessibility);
+          return true;
+        case Permission.location:
+          await AppSettings.openAppSettings(type: AppSettingsType.location);
+          return true;
+        case Permission.notification:
+          await AppSettings.openAppSettings(type: AppSettingsType.notification);
+          return true;
+        case Permission.camera:
+          await AppSettings.openAppSettings(type: AppSettingsType.settings);
+          return true;
+        case Permission.contacts:
+          await AppSettings.openAppSettings(type: AppSettingsType.settings);
+          return true;
+        case Permission.phone:
+          await AppSettings.openAppSettings(type: AppSettingsType.settings);
+          return true;
+        case Permission.bluetooth:
+        case Permission.bluetoothConnect:
+          await AppSettings.openAppSettings(type: AppSettingsType.bluetooth);
+          return true;
+        case Permission.storage:
+        case Permission.manageExternalStorage:
+          await AppSettings.openAppSettings(type: AppSettingsType.settings);
+          return true;
+        default:
+          await AppSettings.openAppSettings();
+          return true;
+      }
+    } catch (e) {
+      debugPrint('Erreur ouverture paramètres pour $permission: $e');
+      return false;
+    }
+  }
+
+  /// Vérifier si une permission peut être demandée
+  Future<bool> canRequestPermission(Permission permission) async {
+    try {
+      final status = await permission.status;
+      return status != PermissionStatus.permanentlyDenied;
+    } catch (e) {
+      debugPrint('Erreur vérification permission $permission: $e');
+      return false;
+    }
+  }
+
+  /// Demander une permission avec gestion complète des cas d'erreur
+  Future<PermissionRequestResult> requestPermissionSafely(Permission permission) async {
+    try {
+      // Vérifier d'abord si on peut demander la permission
+      final currentStatus = await permission.status;
+      
+      if (currentStatus == PermissionStatus.granted) {
+        return PermissionRequestResult(
+          permission: permission,
+          status: currentStatus,
+          success: true,
+          canOpenSettings: false,
+        );
+      }
+
+      if (currentStatus == PermissionStatus.permanentlyDenied) {
+        return PermissionRequestResult(
+          permission: permission,
+          status: currentStatus,
+          success: false,
+          canOpenSettings: true,
+          error: 'Permission refusée définitivement',
+        );
+      }
+
+      // Demander la permission
+      final newStatus = await permission.request();
+      
+      return PermissionRequestResult(
+        permission: permission,
+        status: newStatus,
+        success: newStatus == PermissionStatus.granted,
+        canOpenSettings: newStatus == PermissionStatus.permanentlyDenied,
+      );
+    } catch (e) {
+      debugPrint('Erreur demande permission $permission: $e');
+      return PermissionRequestResult(
+        permission: permission,
+        status: PermissionStatus.denied,
+        success: false,
+        canOpenSettings: true,
+        error: e.toString(),
+      );
+    }
+  }
+
   /// Ouvrir les paramètres de permissions spécifiques
   Future<bool> openPermissionSettings() async {
     try {
@@ -108,17 +208,6 @@ class PhoneSettingsService {
     }
   }
 
-  /// Vérifier si une permission spécifique peut être accordée
-  Future<bool> canRequestPermission(Permission permission) async {
-    try {
-      final status = await permission.status;
-      return status != PermissionStatus.permanentlyDenied;
-    } catch (e) {
-      debugPrint('Erreur vérification permission: $e');
-      return false;
-    }
-  }
-
   /// Obtenir le statut d'une permission
   Future<PermissionStatus> getPermissionStatus(Permission permission) async {
     try {
@@ -126,52 +215,6 @@ class PhoneSettingsService {
     } catch (e) {
       debugPrint('Erreur statut permission: $e');
       return PermissionStatus.denied;
-    }
-  }
-
-  /// Demander une permission avec gestion des erreurs
-  Future<PermissionRequestResult> requestPermissionSafely(
-    Permission permission,
-  ) async {
-    try {
-      final initialStatus = await permission.status;
-
-      if (initialStatus == PermissionStatus.granted) {
-        return PermissionRequestResult(
-          permission: permission,
-          status: initialStatus,
-          success: true,
-          canOpenSettings: false,
-        );
-      }
-
-      if (initialStatus == PermissionStatus.permanentlyDenied) {
-        return PermissionRequestResult(
-          permission: permission,
-          status: initialStatus,
-          success: false,
-          canOpenSettings: true,
-        );
-      }
-
-      // Demander la permission
-      final newStatus = await permission.request();
-
-      return PermissionRequestResult(
-        permission: permission,
-        status: newStatus,
-        success: newStatus == PermissionStatus.granted,
-        canOpenSettings: newStatus == PermissionStatus.permanentlyDenied,
-      );
-    } catch (e) {
-      debugPrint('Erreur demande permission: $e');
-      return PermissionRequestResult(
-        permission: permission,
-        status: PermissionStatus.denied,
-        success: false,
-        canOpenSettings: true,
-        error: e.toString(),
-      );
     }
   }
 

@@ -21,13 +21,13 @@
   "retry": "أعد المحاولة",
   "preparingInterface": "جارٍ تحضير الواجهة...",
   "readyInitializingBackground": "جاهز! جارٍ التهيئة في الخلفية...",
-  "interfaceReadyDegraded": "الواجهة جاهزة (الوضع المتدهور)",
+  "interfaceReadyDegraded": "الواجهة جاهزة (الوضع المحدود)",
   "ricIsListening": "ريك يستمع من الكون المكاني...",
-  "spatialProcessing": "جارٍ المعالجة في الكون المكاني...",
+  "spatialProcessing": "معالجة في الكون المكاني...",
   "spatialReady": "جاهز! قل 'Hey Ric' في الكون المكاني",
   "spatialListeningError": "خطأ في الاستماع المكاني: {error}",
-  "stopError": "خطأ في التوقف: {error}",
+  "stopError": "خطأ في الإيقاف: {error}",
   "ricConnectedSpatial": "ريك متصل في الكون المكاني",
   "spatialModeAvailable": "الوضع المكاني متاح",
-  "listeningInSpatial": "جارٍ الاستماع في الكون المكاني..."
+  "listeningInSpatial": "الاستماع في الكون المكاني..."
 }

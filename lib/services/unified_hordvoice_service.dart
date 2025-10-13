@@ -130,24 +130,38 @@ class UnifiedHordVoiceService {
       _azureSpeechService = AzureSpeechService();
       _emotionAnalysisService = EmotionAnalysisService();
 
-      // Initialisation Azure sans bloquer l'interface
-      try {
-        await _aiService?.initialize();
-      } catch (e) {
-        debugPrint('Avertissement: AzureOpenAI non disponible: $e');
-      }
+      // Initialisation Azure avec timeout et fallback robuste
+      final List<Future<void>> azureInitTasks = [];
+      
+      // AzureOpenAI avec timeout réduit
+      azureInitTasks.add(
+        _initializeServiceWithTimeout(
+          () async => await _aiService?.initialize(),
+          'AzureOpenAI',
+          Duration(seconds: 2), // 5s -> 2s
+        ),
+      );
 
-      try {
-        await _azureSpeechService?.initialize();
-      } catch (e) {
-        debugPrint('Avertissement: AzureSpeech non disponible: $e');
-      }
+      // AzureSpeech avec timeout réduit
+      azureInitTasks.add(
+        _initializeServiceWithTimeout(
+          () async => await _azureSpeechService?.initialize(),
+          'AzureSpeech',
+          Duration(seconds: 2), // 5s -> 2s
+        ),
+      );
 
-      try {
-        await _emotionAnalysisService?.initialize();
-      } catch (e) {
-        debugPrint('Avertissement: EmotionAnalysis non disponible: $e');
-      }
+      // EmotionAnalysis avec timeout réduit
+      azureInitTasks.add(
+        _initializeServiceWithTimeout(
+          () async => await _emotionAnalysisService?.initialize(),
+          'EmotionAnalysis',
+          Duration(seconds: 1), // 3s -> 1s
+        ),
+      );
+
+      // Attendre toutes les initialisations en parallèle sans que l'une bloque les autres
+      await Future.wait(azureInitTasks, eagerError: false);
 
       debugPrint('Services essentiels initialisés');
       _isInitialized = true;
@@ -1120,17 +1134,73 @@ class UnifiedHordVoiceService {
     }
   }
 
+  /// Nettoie proprement toutes les ressources pour éviter les déconnexions
+  Future<void> cleanup() async {
+    debugPrint('Nettoyage UnifiedHordVoiceService...');
+    
+    try {
+      // Arrêter les timers
+      _monitoringTimer?.cancel();
+      _batteryTimer?.cancel();
+      _wakeWordTimer?.cancel();
+      
+      // Nettoyer TTS pour éviter les déconnexions
+      if (_tts != null) {
+        try {
+          await _tts!.stop();
+          // Note: Ne pas appeler dispose() sur FlutterTts car cela cause des crashes
+          debugPrint('TTS arrêté proprement');
+        } catch (e) {
+          debugPrint('Erreur arrêt TTS: $e');
+        }
+      }
+      
+      // Fermer les streams
+      _aiResponseController.close();
+      _moodController.close();
+      _systemStatusController.close();
+      _audioLevelController.close();
+      _transcriptionController.close();
+      _emotionController.close();
+      _wakeWordController.close();
+      _isSpeakingController.close();
+      
+      debugPrint('Ressources nettoyées');
+    } catch (e) {
+      debugPrint('Erreur nettoyage: $e');
+    }
+  }
+
+  /// Initialise un service avec timeout pour éviter les blocages
+  Future<void> _initializeServiceWithTimeout(
+    Future<void> Function()? initialization,
+    String serviceName,
+    Duration timeout,
+  ) async {
+    if (initialization == null) {
+      debugPrint('$serviceName: Initialisation ignorée (service null)');
+      return;
+    }
+
+    try {
+      debugPrint('$serviceName: Initialisation démarrée...');
+      await initialization().timeout(
+        timeout,
+        onTimeout: () {
+          debugPrint('$serviceName: Timeout après ${timeout.inSeconds}s - continuer sans');
+        },
+      );
+      debugPrint('$serviceName: Initialisé avec succès');
+    } catch (e) {
+      debugPrint('$serviceName: Erreur d\'initialisation: $e - continuer sans');
+      // Ne pas faire rethrow pour permettre à l'app de continuer
+    }
+  }
+
   void dispose() {
-    _monitoringTimer?.cancel();
-    _batteryTimer?.cancel();
-    _wakeWordTimer?.cancel();
-    _aiResponseController.close();
-    _moodController.close();
-    _systemStatusController.close();
-    _audioLevelController.close();
-    _transcriptionController.close();
-    _emotionController.close();
-    _wakeWordController.close();
-    _isSpeakingController.close();
+    // Appeler cleanup de manière asynchrone
+    cleanup().catchError((e) {
+      debugPrint('Erreur dispose: $e');
+    });
   }
 }

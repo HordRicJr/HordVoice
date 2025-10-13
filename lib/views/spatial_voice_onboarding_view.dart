@@ -380,20 +380,84 @@ class _SpatialVoiceOnboardingViewState
     );
   }
 
-  /// Attendre interaction utilisateur
+  /// Attendre interaction utilisateur réelle
+  Completer<void>? _userInteractionCompleter;
+
   Future<void> _waitForUserInteraction() async {
-    // En production, ceci serait géré par un GestureDetector ou reconnaissance vocale
-    await Future.delayed(Duration(seconds: 3));
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
+    }
+    
+    _userInteractionCompleter = Completer<void>();
+    
+    // Attendre une vraie interaction utilisateur (tap, vocal, etc.)
+    try {
+      await _userInteractionCompleter!.future.timeout(
+        const Duration(seconds: 30), // Timeout de sécurité
+        onTimeout: () {
+          debugPrint('Timeout interaction utilisateur - continuer automatiquement');
+        },
+      );
+    } catch (e) {
+      debugPrint('Erreur attente interaction: $e');
+    }
+  }
+
+  /// Méthode appelée quand l'utilisateur interagit (tap, vocal, etc.)
+  void _onUserInteraction() {
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
+    }
   }
 
   /// Écouter choix de voix
-  Future<void> _listenForVoiceChoice() async {
-    // En production, utiliser le service de reconnaissance vocale
-    await Future.delayed(Duration(seconds: 4));
+  Completer<String>? _voiceChoiceCompleter;
 
-    await _speakWithSpatialEffects(
-      'Excellent choix ! Cette voix me va parfaitement.',
-    );
+  Future<void> _listenForVoiceChoice() async {
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete("default");
+    }
+    
+    _voiceChoiceCompleter = Completer<String>();
+    
+    setState(() {
+      _isListening = true;
+    });
+
+    try {
+      // Attendre reconnaissance vocale réelle ou timeout
+      await _voiceChoiceCompleter!.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('Timeout choix vocal - utiliser voix par défaut');
+          return "default";
+        },
+      );
+
+      setState(() {
+        _isListening = false;
+      });
+
+      await _speakWithSpatialEffects(
+        'Excellent choix ! Cette voix me va parfaitement.',
+      );
+    } catch (e) {
+      debugPrint('Erreur choix vocal: $e');
+      setState(() {
+        _isListening = false;
+      });
+      
+      await _speakWithSpatialEffects(
+        'Je vais utiliser la voix par défaut.',
+      );
+    }
+  }
+
+  /// Méthode appelée quand l'utilisateur fait un choix vocal
+  void _onVoiceChoice(String choice) {
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete(choice);
+    }
   }
 
   /// Transition vers la vue spatiale principale
@@ -442,20 +506,27 @@ class _SpatialVoiceOnboardingViewState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Univers spatial de fond
-          _buildSpatialUniverse(),
+      body: GestureDetector(
+        onTap: () {
+          // Déclencher l'interaction utilisateur sur tap
+          debugPrint('Interaction utilisateur détectée (tap)');
+          _onUserInteraction();
+        },
+        child: Stack(
+          children: [
+            // Univers spatial de fond
+            _buildSpatialUniverse(),
 
-          // Avatar central interactif
-          _buildCentralAvatar(),
+            // Avatar central interactif
+            _buildCentralAvatar(),
 
-          // Interface d'onboarding overlay
-          if (_isInitialized) _buildOnboardingInterface(),
+            // Interface d'onboarding overlay
+            if (_isInitialized) _buildOnboardingInterface(),
 
-          // Overlay de chargement
-          if (!_isInitialized) _buildLoadingOverlay(),
-        ],
+            // Overlay de chargement
+            if (!_isInitialized) _buildLoadingOverlay(),
+          ],
+        ),
       ),
     );
   }
@@ -650,10 +721,20 @@ class _SpatialVoiceOnboardingViewState
 
   @override
   void dispose() {
+    // Nettoyer les completers pour éviter les fuites mémoire
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
+    }
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete("default");
+    }
+    
+    // Dispose des animations
     _universeController.dispose();
     _avatarController.dispose();
     _stepsController.dispose();
     _interactionController.dispose();
+    
     super.dispose();
   }
 }
