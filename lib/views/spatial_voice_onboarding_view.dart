@@ -47,9 +47,13 @@ class _SpatialVoiceOnboardingViewState
   bool _isSpeaking = false;
   String _currentMessage = '';
   double _progressPercent = 0.0;
+  bool _waitingForUserInput = false;
 
   // Données temporaires de configuration
   Map<String, dynamic> _configData = {};
+
+  // Completer pour attendre les interactions utilisateur
+  Completer<void>? _userInputCompleter;
 
   @override
   void initState() {
@@ -161,7 +165,7 @@ class _SpatialVoiceOnboardingViewState
     await _speakWithSpatialEffects(
       'Bienvenue dans l\'univers HordVoice ! Je suis Ric, votre assistant spatial. '
       'Nous allons configurer votre expérience vocale en quelques étapes immersives. '
-      'Touchez l\'écran pour continuer.',
+      'Touchez l\'écran ou le bouton Continuer quand vous êtes prêt.',
     );
 
     // Attendre interaction utilisateur
@@ -215,7 +219,7 @@ class _SpatialVoiceOnboardingViewState
 
     await _speakWithSpatialEffects(
       'Maintenant, choisissons ma voix ! Je vais vous présenter différentes options. '
-      'Dites simplement "celle-ci" quand vous entendrez une voix qui vous plaît.',
+      'Dites "celle-ci" ou touchez Continuer quand vous entendrez une voix qui vous plaît.',
     );
 
     // Démonstration des voix avec animations
@@ -238,7 +242,7 @@ class _SpatialVoiceOnboardingViewState
 
     await _speakWithSpatialEffects(
       'Testons maintenant la reconnaissance vocale dans l\'espace. '
-      'Dites "Ric, test spatial" pour vérifier que tout fonctionne parfaitement.',
+      'Dites "Ric, test spatial" ou touchez Continuer quand vous êtes prêt.',
     );
 
     // Test de reconnaissance avec feedback spatial
@@ -346,7 +350,7 @@ class _SpatialVoiceOnboardingViewState
     }
 
     await _speakWithSpatialEffects(
-      'Quelle voix préférez-vous ? Dites "première", "deuxième" ou "troisième".',
+      'Quelle voix préférez-vous ? Dites "première", "deuxième", "troisième" ou touchez Continuer.',
     );
 
     // Écouter la sélection
@@ -366,11 +370,17 @@ class _SpatialVoiceOnboardingViewState
     final emotionalService = ref.read(emotionalAvatarServiceProvider.notifier);
     emotionalService.startListeningMode();
 
-    // Simuler l'écoute (en production, utiliser le vrai service STT)
-    await Future.delayed(Duration(seconds: 5));
+    // Attendre que l'utilisateur essaie le test vocal ou continue manuellement
+    _userInputCompleter = Completer<void>();
+    setState(() {
+      _waitingForUserInput = true;
+    });
+
+    await _userInputCompleter!.future;
 
     setState(() {
       _isListening = false;
+      _waitingForUserInput = false;
     });
 
     _interactionController.stop();
@@ -380,16 +390,46 @@ class _SpatialVoiceOnboardingViewState
     );
   }
 
-  /// Attendre interaction utilisateur
+  /// Attendre interaction utilisateur (tap ou commande vocale)
   Future<void> _waitForUserInteraction() async {
-    // En production, ceci serait géré par un GestureDetector ou reconnaissance vocale
-    await Future.delayed(Duration(seconds: 3));
+    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
+      return; // Déjà en attente
+    }
+    
+    _userInputCompleter = Completer<void>();
+    setState(() {
+      _waitingForUserInput = true;
+    });
+
+    // Attendre que l'utilisateur tape l'écran ou donne une commande vocale
+    await _userInputCompleter!.future;
+    
+    setState(() {
+      _waitingForUserInput = false;
+    });
+  }
+
+  /// Déclencher la continuation vers la prochaine étape
+  void _triggerContinue() {
+    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
+      _userInputCompleter!.complete();
+    }
   }
 
   /// Écouter choix de voix
   Future<void> _listenForVoiceChoice() async {
-    // En production, utiliser le service de reconnaissance vocale
-    await Future.delayed(Duration(seconds: 4));
+    // Créer completer pour attendre sélection utilisateur
+    _userInputCompleter = Completer<void>();
+    setState(() {
+      _waitingForUserInput = true;
+    });
+
+    // Attendre que l'utilisateur sélectionne une voix
+    await _userInputCompleter!.future;
+
+    setState(() {
+      _waitingForUserInput = false;
+    });
 
     await _speakWithSpatialEffects(
       'Excellent choix ! Cette voix me va parfaitement.',
@@ -442,20 +482,26 @@ class _SpatialVoiceOnboardingViewState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Univers spatial de fond
-          _buildSpatialUniverse(),
+      body: GestureDetector(
+        onTap: _waitingForUserInput ? _triggerContinue : null,
+        child: Stack(
+          children: [
+            // Univers spatial de fond
+            _buildSpatialUniverse(),
 
-          // Avatar central interactif
-          _buildCentralAvatar(),
+            // Avatar central interactif
+            _buildCentralAvatar(),
 
-          // Interface d'onboarding overlay
-          if (_isInitialized) _buildOnboardingInterface(),
+            // Interface d'onboarding overlay
+            if (_isInitialized) _buildOnboardingInterface(),
 
-          // Overlay de chargement
-          if (!_isInitialized) _buildLoadingOverlay(),
-        ],
+            // Overlay de chargement
+            if (!_isInitialized) _buildLoadingOverlay(),
+
+            // Indication tap pour continuer
+            if (_waitingForUserInput) _buildTapHint(),
+          ],
+        ),
       ),
     );
   }
@@ -573,6 +619,12 @@ class _SpatialVoiceOnboardingViewState
                     fontSize: 14,
                   ),
                 ),
+
+                // Bouton Continue (visible seulement quand on attend l'utilisateur)
+                if (_waitingForUserInput) ...[
+                  SizedBox(height: 20),
+                  _buildContinueButton(),
+                ],
               ],
             ),
           );
@@ -601,6 +653,43 @@ class _SpatialVoiceOnboardingViewState
     );
   }
 
+  Widget _buildContinueButton() {
+    return AnimatedBuilder(
+      animation: _interactionPulse,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: 1.0 + (_interactionPulse.value * 0.1),
+          child: ElevatedButton(
+            onPressed: _triggerContinue,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.withOpacity(0.8),
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25),
+              ),
+              elevation: 8,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Continuer',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_forward_rounded, size: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildListeningIndicator() {
     return Positioned(
       bottom: 0,
@@ -610,6 +699,51 @@ class _SpatialVoiceOnboardingViewState
         height: 30,
         decoration: BoxDecoration(color: Colors.green, shape: BoxShape.circle),
         child: Icon(Icons.mic, color: Colors.white, size: 16),
+      ),
+    );
+  }
+
+  Widget _buildTapHint() {
+    return Positioned(
+      top: 100,
+      left: 20,
+      right: 20,
+      child: AnimatedBuilder(
+        animation: _interactionPulse,
+        builder: (context, child) {
+          return Opacity(
+            opacity: 0.5 + (_interactionPulse.value * 0.3),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.touch_app_rounded,
+                    color: Colors.white.withOpacity(0.8),
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'Touchez l\'écran pour continuer',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -650,6 +784,11 @@ class _SpatialVoiceOnboardingViewState
 
   @override
   void dispose() {
+    // Clean up completer if still pending
+    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
+      _userInputCompleter!.complete();
+    }
+    
     _universeController.dispose();
     _avatarController.dispose();
     _stepsController.dispose();
