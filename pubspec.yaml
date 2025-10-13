@@ -41,7 +41,7 @@ dependencies:
   # STOCKAGE - Base de données
   hive: 2.2.3
   hive_flutter: 1.1.0
-  supabase_flutter: 2.9.1
+  supabase_flutter: 2.10.3
 
   # SPOTIFY INTEGRATION - Contrôle musical complet
   crypto: ^3.0.5 # Pour l'authentification OAuth2
