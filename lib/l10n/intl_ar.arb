@@ -18,5 +18,16 @@
   "langArabic": "العربية",
   "listenHint": "قل 'Hey Ric' للبدء بالاستماع",
   "errorInitialization": "خطأ أثناء التهيئة: {error}",
-  "retry": "أعد المحاولة"
+  "retry": "أعد المحاولة",
+  "preparingInterface": "جارٍ تحضير الواجهة...",
+  "readyInitializingBackground": "جاهز! جارٍ التهيئة في الخلفية...",
+  "interfaceReadyDegraded": "الواجهة جاهزة (الوضع المحدود)",
+  "ricIsListening": "ريك يستمع من الكون المكاني...",
+  "spatialProcessing": "معالجة في الكون المكاني...",
+  "spatialReady": "جاهز! قل 'Hey Ric' في الكون المكاني",
+  "spatialListeningError": "خطأ في الاستماع المكاني: {error}",
+  "stopError": "خطأ في الإيقاف: {error}",
+  "ricConnectedSpatial": "ريك متصل في الكون المكاني",
+  "spatialModeAvailable": "الوضع المكاني متاح",
+  "listeningInSpatial": "الاستماع في الكون المكاني..."
 }

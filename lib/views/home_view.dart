@@ -42,11 +42,31 @@ class _HomeViewState extends ConsumerState<HomeView>
   String _statusText = "";
   String _currentResponse = "";
 
+  bool _hasInitialized = false;
+  
+  // Cache des localisations pour éviter les boucles infinies
+  String _cachedAppTitle = 'HordVoice';
+  String _cachedListeningText = 'Listening in the spatial universe...';
+  String _cachedListenHint = 'Say "Hey Ric" to start listening';
+  String _cachedWelcome = 'Welcome to HordVoice';
+  String _cachedRicIsListening = 'Ric is listening from the spatial universe...';
+  String _cachedSpatialProcessing = 'Processing in spatial universe...';
+  String _cachedSpatialListeningError = 'Spatial listening error';
+  String _cachedStopError = 'Stop error';
+
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _initializeServices();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitialized) {
+      _hasInitialized = true;
+      _initializeServices();
+    }
   }
 
   void _initializeAnimations() {
@@ -97,27 +117,67 @@ class _HomeViewState extends ConsumerState<HomeView>
   }
 
   Future<void> _initializeServices() async {
+    if (_isInitialized) return; // Éviter les appels multiples
+    
     try {
-      final l10n = AppLocalizations.of(context);
+      // Utiliser des messages en dur pour éviter les problèmes de localisation pendant l'init
       setState(() {
-        _statusText = l10n?.initializing ?? "Initializing HordVoice...";
+        _statusText = "Initializing HordVoice...";
       });
 
-      // Démarrer immédiatement l'UI sans attendre
-      setState(() {
-        _isInitialized = true; // Marquer comme initialisé pour l'UI
-        _statusText = l10n?.homeWelcome ?? "Welcome to HordVoice";
-      });
+      // Attendre un frame pour que l'UI se dessine
+      await Future.delayed(Duration(milliseconds: 50));
 
       // Initialisation DIFFÉRÉE en arrière-plan
       _initializeServicesInBackground();
+      
+      // Marquer comme initialisé après un délai
+      await Future.delayed(Duration(milliseconds: 200));
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _statusText = "Welcome to HordVoice";
+        });
+        
+        // Charger les localisations seulement APRÈS l'initialisation
+        _loadLocalizedMessages();
+      }
     } catch (e) {
       debugPrint('Erreur initialisation: $e');
+      if (mounted) {
+        setState(() {
+          _statusText = "Error during initialization: $e";
+          _isInitialized = true;
+        });
+      }
+    }
+  }
+
+  /// Charge les messages localisés après l'initialisation complète
+  void _loadLocalizedMessages() {
+    if (!mounted) return;
+    
+    try {
       final l10n = AppLocalizations.of(context);
-      setState(() {
-        _statusText = l10n?.errorInitialization(e.toString()) ?? "Error during initialization: $e";
-        _isInitialized = true;
-      });
+      if (l10n != null && _isInitialized) {
+        // MISE EN CACHE des localisations pour éviter les boucles infinies
+        _cachedAppTitle = l10n.appTitle;
+        _cachedListeningText = l10n.listeningInSpatial;
+        _cachedListenHint = l10n.listenHint;
+        _cachedWelcome = l10n.homeWelcome;
+        _cachedRicIsListening = l10n.ricIsListening;
+        _cachedSpatialProcessing = l10n.spatialProcessing;
+        // Pour les méthodes avec paramètres, on utilisera des messages génériques
+        _cachedSpatialListeningError = 'Spatial listening error';
+        _cachedStopError = 'Stop error';
+        
+        setState(() {
+          _statusText = _cachedWelcome;
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur chargement localisation: $e');
+      // Garder les messages en dur si les localisations échouent
     }
   }
 
@@ -264,10 +324,9 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _startListening() async {
     try {
-      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = true;
-        _statusText = l10n?.ricIsListening ?? "Ric is listening from the spatial universe...";
+        _statusText = _cachedRicIsListening;
         _currentResponse = "";
       });
 
@@ -284,10 +343,9 @@ class _HomeViewState extends ConsumerState<HomeView>
         _currentResponse = response;
       });
     } catch (e) {
-      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = false;
-        _statusText = l10n?.spatialListeningError(e.toString()) ?? "Spatial listening error: ${e.toString()}";
+        _statusText = "$_cachedSpatialListeningError: ${e.toString()}";
       });
       _waveController.stop();
     }
@@ -295,22 +353,20 @@ class _HomeViewState extends ConsumerState<HomeView>
 
   Future<void> _stopListening() async {
     try {
-      final l10n = AppLocalizations.of(context);
       setState(() {
         _isListening = false;
-        _statusText = l10n?.spatialProcessing ?? "Processing in spatial universe...";
+        _statusText = _cachedSpatialProcessing;
       });
 
       _waveController.stop();
       await _unifiedService.stopListening();
 
       setState(() {
-        _statusText = l10n?.listenHint ?? "Say 'Hey Ric' to start listening";
+        _statusText = _cachedListenHint;
       });
     } catch (e) {
-      final l10n = AppLocalizations.of(context);
       setState(() {
-        _statusText = l10n?.stopError(e.toString()) ?? "Stop error: ${e.toString()}";
+        _statusText = "$_cachedStopError: ${e.toString()}";
       });
     }
   }
@@ -400,7 +456,7 @@ class _HomeViewState extends ConsumerState<HomeView>
                 ],
               ).createShader(bounds),
               child: Text(
-                AppLocalizations.of(context)?.appTitle ?? 'HordVoice',
+                _cachedAppTitle,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 28,
@@ -647,8 +703,8 @@ class _HomeViewState extends ConsumerState<HomeView>
           // Instruction vocale spatiale
           Text(
             _isListening
-                ? "🎙️ ${AppLocalizations.of(context)?.listeningInSpatial ?? 'Listening in the spatial universe...'}"
-                : "🌌 ${AppLocalizations.of(context)?.listenHint ?? 'Say \'Hey Ric\' to start listening'}",
+                ? "🎙️ $_cachedListeningText"
+                : "🌌 $_cachedListenHint",
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.8),
               fontSize: 16,

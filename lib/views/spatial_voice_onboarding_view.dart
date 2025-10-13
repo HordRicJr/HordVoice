@@ -390,50 +390,84 @@ class _SpatialVoiceOnboardingViewState
     );
   }
 
-  /// Attendre interaction utilisateur (tap ou commande vocale)
+  /// Attendre interaction utilisateur réelle
+  Completer<void>? _userInteractionCompleter;
+
   Future<void> _waitForUserInteraction() async {
-    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
-      return; // Déjà en attente
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
     }
     
-    _userInputCompleter = Completer<void>();
-    setState(() {
-      _waitingForUserInput = true;
-    });
-
-    // Attendre que l'utilisateur tape l'écran ou donne une commande vocale
-    await _userInputCompleter!.future;
+    _userInteractionCompleter = Completer<void>();
     
-    setState(() {
-      _waitingForUserInput = false;
-    });
+    // Attendre une vraie interaction utilisateur (tap, vocal, etc.)
+    try {
+      await _userInteractionCompleter!.future.timeout(
+        const Duration(seconds: 30), // Timeout de sécurité
+        onTimeout: () {
+          debugPrint('Timeout interaction utilisateur - continuer automatiquement');
+        },
+      );
+    } catch (e) {
+      debugPrint('Erreur attente interaction: $e');
+    }
   }
 
-  /// Déclencher la continuation vers la prochaine étape
-  void _triggerContinue() {
-    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
-      _userInputCompleter!.complete();
+  /// Méthode appelée quand l'utilisateur interagit (tap, vocal, etc.)
+  void _onUserInteraction() {
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
     }
   }
 
   /// Écouter choix de voix
+  Completer<String>? _voiceChoiceCompleter;
+
   Future<void> _listenForVoiceChoice() async {
-    // Créer completer pour attendre sélection utilisateur
-    _userInputCompleter = Completer<void>();
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete("default");
+    }
+    
+    _voiceChoiceCompleter = Completer<String>();
+    
     setState(() {
-      _waitingForUserInput = true;
+      _isListening = true;
     });
 
-    // Attendre que l'utilisateur sélectionne une voix
-    await _userInputCompleter!.future;
+    try {
+      // Attendre reconnaissance vocale réelle ou timeout
+      await _voiceChoiceCompleter!.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('Timeout choix vocal - utiliser voix par défaut');
+          return "default";
+        },
+      );
 
-    setState(() {
-      _waitingForUserInput = false;
-    });
+      setState(() {
+        _isListening = false;
+      });
 
-    await _speakWithSpatialEffects(
-      'Excellent choix ! Cette voix me va parfaitement.',
-    );
+      await _speakWithSpatialEffects(
+        'Excellent choix ! Cette voix me va parfaitement.',
+      );
+    } catch (e) {
+      debugPrint('Erreur choix vocal: $e');
+      setState(() {
+        _isListening = false;
+      });
+      
+      await _speakWithSpatialEffects(
+        'Je vais utiliser la voix par défaut.',
+      );
+    }
+  }
+
+  /// Méthode appelée quand l'utilisateur fait un choix vocal
+  void _onVoiceChoice(String choice) {
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete(choice);
+    }
   }
 
   /// Transition vers la vue spatiale principale
@@ -483,7 +517,11 @@ class _SpatialVoiceOnboardingViewState
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
-        onTap: _waitingForUserInput ? _triggerContinue : null,
+        onTap: () {
+          // Déclencher l'interaction utilisateur sur tap
+          debugPrint('Interaction utilisateur détectée (tap)');
+          _onUserInteraction();
+        },
         child: Stack(
           children: [
             // Univers spatial de fond
@@ -497,9 +535,6 @@ class _SpatialVoiceOnboardingViewState
 
             // Overlay de chargement
             if (!_isInitialized) _buildLoadingOverlay(),
-
-            // Indication tap pour continuer
-            if (_waitingForUserInput) _buildTapHint(),
           ],
         ),
       ),
@@ -784,15 +819,20 @@ class _SpatialVoiceOnboardingViewState
 
   @override
   void dispose() {
-    // Clean up completer if still pending
-    if (_userInputCompleter != null && !_userInputCompleter!.isCompleted) {
-      _userInputCompleter!.complete();
+    // Nettoyer les completers pour éviter les fuites mémoire
+    if (_userInteractionCompleter != null && !_userInteractionCompleter!.isCompleted) {
+      _userInteractionCompleter!.complete();
+    }
+    if (_voiceChoiceCompleter != null && !_voiceChoiceCompleter!.isCompleted) {
+      _voiceChoiceCompleter!.complete("default");
     }
     
+    // Dispose des animations
     _universeController.dispose();
     _avatarController.dispose();
     _stepsController.dispose();
     _interactionController.dispose();
+    
     super.dispose();
   }
 }

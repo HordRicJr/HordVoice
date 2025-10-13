@@ -30,16 +30,25 @@ class VoiceManagementService {
 
     try {
       _supabase = Supabase.instance.client;
-      await _loadSelectedVoice();
+      
+      // D'abord setup les voix par défaut pour assurer qu'on a toujours quelque chose
+      _setupDefaultVoices();
+      
+      // Ensuite essayer de charger depuis la base ou Azure
       await _loadAvailableVoices();
+      await _loadSelectedVoice();
 
       _isInitialized = true;
       debugPrint(
-        'VoiceManagementService initialisé avec ${_availableVoices.length} voix',
+        '✅ VoiceManagementService initialisé avec ${_availableVoices.length} voix',
       );
     } catch (e) {
-      debugPrint('Erreur initialisation VoiceManagementService: $e');
-      _setupDefaultVoices();
+      debugPrint('⚠️ Erreur initialisation VoiceManagementService: $e');
+      // Assurer qu'on a au moins les voix par défaut
+      if (_availableVoices.isEmpty) {
+        _setupDefaultVoices();
+      }
+      _isInitialized = true; // Marquer comme initialisé même avec erreur
     }
   }
 
@@ -53,23 +62,28 @@ class VoiceManagementService {
         return;
       }
 
-      // Charger depuis Supabase (manifest des voix) - avec gestion d'erreur
+      // Charger depuis Supabase (manifest des voix) - avec gestion d'erreur robuste
       try {
         final response = await _supabase
             .from('available_voices')
             .select()
             .eq('is_active', true)
-            .order('name');
+            .order('voice_name')
+            .timeout(Duration(seconds: 3)); // Timeout pour éviter d'attendre trop
 
         if (response.isNotEmpty) {
           _availableVoices = (response as List)
               .map((json) => VoiceOption.fromJson(json))
               .toList();
           _lastVoiceRefresh = DateTime.now();
+          debugPrint('✅ ${_availableVoices.length} voix chargées depuis Supabase');
           return;
+        } else {
+          debugPrint('⚠️ Aucune voix trouvée dans available_voices - utilisation des fallbacks');
         }
       } catch (dbError) {
-        debugPrint('Table available_voices non trouvée: $dbError');
+        debugPrint('⚠️ Table available_voices non accessible: $dbError');
+        // Continuer avec les fallbacks - ne pas laisser planter l'app
       }
 
       // Fallback: charger voix Azure Speech directement ou voix par défaut

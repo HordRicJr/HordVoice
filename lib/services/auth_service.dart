@@ -287,12 +287,19 @@ class AuthService extends ChangeNotifier {
           .from('user_profiles')
           .select()
           .eq('id', _currentUser!.id)
-          .single();
+          .maybeSingle(); // Utiliser maybeSingle() au lieu de single()
 
-      _currentProfile = UserProfile.fromJson(response);
+      if (response != null) {
+        _currentProfile = UserProfile.fromJson(response);
+        debugPrint('✅ Profil utilisateur chargé');
+      } else {
+        debugPrint('ℹ️ Aucun profil utilisateur trouvé - L\'utilisateur pourra en créer un plus tard');
+        _currentProfile = null;
+      }
       notifyListeners();
     } catch (error) {
       debugPrint('Erreur chargement profil: $error');
+      _currentProfile = null;
       // Ne pas affecter _errorMessage pour éviter d'afficher une erreur
       // si le profil n'existe pas encore
     }
