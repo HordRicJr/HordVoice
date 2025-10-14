@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import '../core/safety/loop_guard.dart';
+import '../core/safety/watchdog_service.dart';
 import 'battery_monitoring_service.dart';
 import 'health_monitoring_service.dart';
 
@@ -329,7 +332,15 @@ class VoicePerformanceMonitoringService {
 
     // Limiter la taille de l'historique
     while (_metricsHistory.length > _maxHistorySize) {
-      _metricsHistory.removeFirst();
+      final _metricsTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'MetricsHistoryTrim');
+      while (_metricsHistory.length > _maxHistorySize) {
+        _metricsHistory.removeFirst();
+        _metricsTrimGuard.iterate();
+        if (_metricsTrimGuard.shouldBreak) {
+          WatchdogService.notify('Metrics history trimming loop exceeded safe limits', context: 'voice_performance_monitoring_service');
+          break;
+        }
+      }
     }
 
     // Émettre la métrique

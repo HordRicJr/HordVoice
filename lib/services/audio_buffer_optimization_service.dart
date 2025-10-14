@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 import 'dart:math';
+import '../core/safety/loop_guard.dart';
+import '../core/safety/watchdog_service.dart';
 import 'package:flutter/foundation.dart';
 import 'voice_performance_monitoring_service.dart';
 
@@ -269,9 +271,15 @@ class AudioBufferOptimizationService {
     _recentBufferSizes.add(size);
     
     // Limiter l'historique
-    while (_recentBufferSizes.length > _sizeHistoryLimit) {
-      _recentBufferSizes.removeAt(0);
-    }
+      final _historyTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'BufferHistoryTrim');
+      while (_recentBufferSizes.length > _sizeHistoryLimit) {
+        _recentBufferSizes.removeAt(0);
+        _historyTrimGuard.iterate();
+        if (_historyTrimGuard.shouldBreak) {
+          WatchdogService.notify('Buffer history trimming loop exceeded safe limits', context: 'audio_buffer_optimization_service');
+          break;
+        }
+      }
 
     // Mettre à jour la taille optimale si on a assez de données
     if (_recentBufferSizes.length >= 20) {
@@ -411,9 +419,15 @@ class AudioBufferOptimizationService {
       // Réduire la taille des pools très grands
       _bufferPools.forEach((size, pool) {
         const maxIdleBuffers = _maxPoolSize ~/ 2;
+        final _poolTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'BufferPoolTrim');
         while (pool.length > maxIdleBuffers) {
           pool.removeFirst();
           buffersRemoved++;
+          _poolTrimGuard.iterate();
+          if (_poolTrimGuard.shouldBreak) {
+            WatchdogService.notify('Buffer pool trimming loop exceeded safe limits', context: 'audio_buffer_optimization_service');
+            break;
+          }
         }
       });
 
