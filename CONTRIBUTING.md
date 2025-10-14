@@ -27,10 +27,6 @@ To ensure your Hacktoberfest contribution is valuable:
 - Dart 3.8.0 or higher
 - Android SDK 34 or higher
 - Azure Cognitive Services account (for testing)
-
-### Setup
-1. **Fork the repository**
-   ```bash
    git clone https://github.com/YourUsername/HordVoice.git
    cd HordVoice
    ```
@@ -83,7 +79,6 @@ To ensure your Hacktoberfest contribution is valuable:
 ## 🛠️ Development Process
 
 ### 1. Choose an Issue
-- Browse [open issues](https://github.com/HordRicJr/HordVoice/issues)
 - Look for `good first issue` or `hacktoberfest` labels
 - Comment on the issue to claim it
 

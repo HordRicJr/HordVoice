@@ -16,6 +16,7 @@ import 'services/auth_service.dart';
 import 'services/global_error_handler.dart';
 import 'services/crash_prevention_system.dart';
 import 'services/database_initialization_service.dart';
+import 'core/safety/watchdog_service.dart';
 
 // Theme
 import 'theme/app_theme.dart';
@@ -66,6 +67,9 @@ void main() async {
   } catch (e) {
     debugPrint('WakeLock non disponible: $e');
   }
+
+  // Démarrer le watchdog sécurité (surveillance des timers / heartbeats)
+  WatchdogService.instance.start();
 
   runApp(ProviderScope(child: HordVoiceApp()));
 }

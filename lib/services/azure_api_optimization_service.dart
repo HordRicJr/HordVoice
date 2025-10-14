@@ -6,6 +6,10 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'voice_performance_monitoring_service.dart';
 import 'environment_config.dart';
+import '../core/safety/loop_guard.dart';
+import '../core/safety/circuit_breaker.dart' as global_cb;
+import '../core/safety/safety_config.dart';
+import '../core/safety/watchdog_service.dart';
 
 /// Service d'optimisation des appels API Azure pour réduire la latence
 /// et la consommation de bande passante
@@ -46,6 +50,7 @@ class AzureApiOptimizationService {
 
   // Circuit breaker
   final Map<String, _CircuitBreaker> _circuitBreakers = {};
+  final Map<String, global_cb.CircuitBreaker> _globalBreakers = {};
 
   // Compression et optimisation
   bool _compressionEnabled = true;
@@ -106,6 +111,7 @@ class AzureApiOptimizationService {
 
       _isInitialized = true;
       debugPrint('Azure API Optimization Service initialisé');
+      WatchdogService.instance.heartbeat('azure-api-init');
     } catch (e) {
       debugPrint('Erreur initialisation API optimization service: $e');
       rethrow;
@@ -137,6 +143,7 @@ class AzureApiOptimizationService {
         timeoutDuration: const Duration(seconds: 60),
         halfOpenRetryDelay: const Duration(seconds: 30),
       );
+      _globalBreakers[endpoint] = global_cb.CircuitBreaker(label: 'azure-$endpoint');
     }
 
     debugPrint('Circuit breakers initialisés');
@@ -173,9 +180,10 @@ class AzureApiOptimizationService {
         }
       }
 
-      // Vérifier le circuit breaker
-      final circuitBreaker = _circuitBreakers[endpoint];
-      if (circuitBreaker != null && !circuitBreaker.canExecute()) {
+      // Vérifier les circuit breakers (ancien + global)
+      final legacyBreaker = _circuitBreakers[endpoint];
+      final breaker = _globalBreakers[endpoint];
+      if ((legacyBreaker != null && !legacyBreaker.canExecute()) || (breaker != null && !breaker.allowsExecution)) {
         throw AzureApiException('Circuit breaker ouvert pour $endpoint');
       }
 
@@ -206,8 +214,9 @@ class AzureApiOptimizationService {
       // Enregistrer les métriques
       _recordRequestMetrics(endpoint, stopwatch.elapsed, false, false);
 
-      // Notifier le circuit breaker du succès
-      circuitBreaker?.recordSuccess();
+  // Notifier les circuit breakers du succès
+  legacyBreaker?.recordSuccess();
+  breaker?.recordSuccess();
 
       return response;
 
@@ -215,9 +224,11 @@ class AzureApiOptimizationService {
       stopwatch.stop();
       _failedRequests++;
 
-      // Notifier le circuit breaker de l'échec
-      final circuitBreaker = _circuitBreakers[endpoint];
-      circuitBreaker?.recordFailure();
+  // Notifier les circuit breakers de l'échec
+  final legacyBreaker = _circuitBreakers[endpoint];
+  final breaker = _globalBreakers[endpoint];
+  legacyBreaker?.recordFailure();
+  breaker?.recordFailure();
 
       // Enregistrer les métriques d'échec
       _recordRequestMetrics(endpoint, stopwatch.elapsed, false, true);
@@ -281,8 +292,13 @@ class AzureApiOptimizationService {
     final endpointQueue = _endpointRequests[endpoint] ?? Queue<DateTime>();
 
     // Nettoyer les anciennes requêtes
-    while (endpointQueue.isNotEmpty && 
-           now.difference(endpointQueue.first) > _rateLimitWindow) {
+    final guard = LoopGuard(label: 'rateLimit-trim-$endpoint', maxIterations: 500);
+    while (endpointQueue.isNotEmpty &&
+        now.difference(endpointQueue.first) > _rateLimitWindow) {
+      if (!guard.next()) {
+        debugPrint('RateLimit trim loop aborted (exceeded safeguards) for $endpoint');
+        break;
+      }
       endpointQueue.removeFirst();
     }
 
@@ -348,6 +364,7 @@ class AzureApiOptimizationService {
     List<_BatchRequest> requests,
   ) async {
     debugPrint('Exécution batch de ${requests.length} requêtes pour $endpoint');
+    WatchdogService.instance.notifyTimerCallback('azure-batch-exec');
 
     final responses = <Map<String, dynamic>>[];
 
@@ -455,25 +472,16 @@ class AzureApiOptimizationService {
   Future<http.Response> _executeWithRetry(
     Future<http.Response> Function() requestFunction
   ) async {
-    int attempts = 0;
-    late dynamic lastError;
-
-    while (attempts < _maxRetries) {
-      try {
-        return await requestFunction();
-      } catch (e) {
-        lastError = e;
-        attempts++;
-
-        if (attempts < _maxRetries) {
-          final delay = _retryDelay * pow(2, attempts - 1); // Exponential backoff
-          debugPrint('Tentative $attempts échouée, retry dans ${delay.inMilliseconds}ms');
-          await Future.delayed(delay);
-        }
-      }
-    }
-
-    throw AzureApiException('Échec après $_maxRetries tentatives: $lastError');
+    final retry = RetryGuard<http.Response>(
+      maxAttempts: _maxRetries,
+      label: 'azure-http',
+      baseDelay: _retryDelay,
+      maxDelay: const Duration(seconds: 4),
+    );
+    return await retry.run(() async {
+      final response = await requestFunction();
+      return response;
+    }, shouldRetry: (err) => err.toString().contains('Timeout') || err.toString().contains('Socket'));
   }
 
   /// Obtient l'URL de base pour un endpoint
@@ -542,7 +550,8 @@ class AzureApiOptimizationService {
 
   /// Démarre le nettoyage périodique
   void _startPeriodicCleanup() {
-    Timer.periodic(const Duration(minutes: 5), (_) {
+    Timer.periodic(const Duration(minutes: 5), (timer) {
+      WatchdogService.instance.notifyTimerCallback('azure-periodic-cleanup');
       _cleanupExpiredCaches();
       _cleanupOldRequests();
       _updateCacheHitRatio();
