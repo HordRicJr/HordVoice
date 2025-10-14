@@ -18,5 +18,16 @@
   "langArabic": "Arabic",
   "listenHint": "Say 'Hey Ric' to start listening",
   "errorInitialization": "Error during initialization: {error}",
-  "retry": "Retry"
+  "retry": "Retry",
+  "preparingInterface": "Preparing interface...",
+  "readyInitializingBackground": "Ready! Initializing in background...",
+  "interfaceReadyDegraded": "Interface ready (degraded mode)",
+  "ricIsListening": "Ric is listening from the spatial universe...",
+  "spatialProcessing": "Processing in spatial universe...",
+  "spatialReady": "Ready! Say 'Hey Ric' in the spatial universe",
+  "spatialListeningError": "Spatial listening error: {error}",
+  "stopError": "Stop error: {error}",
+  "ricConnectedSpatial": "Ric is connected in the spatial universe",
+  "spatialModeAvailable": "Spatial mode available",
+  "listeningInSpatial": "Listening in the spatial universe..."
 }

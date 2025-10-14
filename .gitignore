@@ -57,3 +57,10 @@ app.*.map.json
 *.p12
 *.keystore
 keystore.properties
+
+# Database files and scripts
+database/
+*.sql
+*.db
+*.sqlite
+*.sqlite3

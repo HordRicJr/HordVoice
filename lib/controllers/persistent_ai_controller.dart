@@ -19,12 +19,12 @@ class PersistentAIController {
 
   // Services
   late UnifiedHordVoiceService _unifiedService;
-  late SpatialOverlayService _spatialOverlayService;
+  SpatialOverlayService? _spatialOverlayService;
 
   // État du contrôleur
   bool _isInitialized = false;
   bool _isPersistentModeActive = false;
-  SpatialContext _currentContext = SpatialContext.unknown();
+  SpatialContext _currentContext = SpatialContextExtension.unknown();
 
   // Callbacks pour les événements UI
   VoidCallback? _onAvatarShown;
@@ -63,7 +63,7 @@ class PersistentAIController {
       _spatialOverlayService = _unifiedService.spatialOverlayService;
 
       // Écouter les événements de l'overlay
-      _spatialOverlayService.overlayEventStream.listen(_handleOverlayEvent);
+      _spatialOverlayService?.overlayEventStream.listen(_handleOverlayEvent);
 
       // Ignorer temporairement le spatial context stream pour éviter conflit de types
       // _spatialOverlayService.spatialContextStream.listen((context) {
@@ -114,9 +114,15 @@ class PersistentAIController {
       // Activer le mode persistant
       debugPrint('Activation mode persistant');
       await _unifiedService.enablePersistentAI();
+      
+      // Vérifier que le service spatial est disponible
+      if (_spatialOverlayService == null) {
+        debugPrint('⚠️ Service spatial non disponible');
+        return;
+      }
 
       _isPersistentModeActive = true;
-      _updateContext(SpatialContext.persistentActive());
+      _updateContext(SpatialContextExtension.persistentActive());
 
       debugPrint('✅ IA persistante activée avec succès');
     } catch (e) {
@@ -144,7 +150,7 @@ class PersistentAIController {
       await _unifiedService.disablePersistentAI();
 
       _isPersistentModeActive = false;
-      _updateContext(SpatialContext.inactive());
+      _updateContext(SpatialContextExtension.inactive());
 
       // Haptic feedback pour indiquer la désactivation
       HapticFeedback.lightImpact();
@@ -162,6 +168,11 @@ class PersistentAIController {
   }) async {
     debugPrint('Affichage avatar contextuel: ${context.type}');
 
+    if (_spatialOverlayService == null) {
+      debugPrint('Service spatial non disponible');
+      return;
+    }
+
     try {
       // Choisir le mode d'affichage selon le contexte
       final mode = _getOverlayModeForContext(context);
@@ -175,7 +186,7 @@ class PersistentAIController {
       // Afficher l'avatar avec animation contextuelle
       await _unifiedService.showSpatialAvatar(mode: mode, config: config);
 
-      _updateContext(SpatialContext.interacting(context));
+      _updateContext(SpatialContextExtension.interacting(context));
     } catch (e) {
       debugPrint('Erreur affichage avatar contextuel: $e');
     }
@@ -206,7 +217,7 @@ class PersistentAIController {
       // Jouer le message avec synchronisation audio-visuelle
       await _playMessageWithSync(message, data);
 
-      _updateContext(SpatialContext.intervening(type, message));
+      _updateContext(SpatialContextExtension.intervening(type, message));
     } catch (e) {
       debugPrint('Erreur intervention spontanée: $e');
     }
@@ -397,52 +408,42 @@ class PersistentAIController {
 
 // Classes de support pour le contexte spatial
 
-class SpatialContext {
-  final DateTime timestamp;
-  final String currentActivity;
-  final bool isAppInForeground;
-  final SpatialInteractionMode interactionMode;
-  final Map<String, dynamic> metadata;
-
-  SpatialContext({
-    required this.timestamp,
-    required this.currentActivity,
-    required this.isAppInForeground,
-    required this.interactionMode,
-    this.metadata = const {},
-  });
-
-  factory SpatialContext.unknown() => SpatialContext(
+// Extension de SpatialContext pour ajouter des factory methods
+extension SpatialContextExtension on SpatialContext {
+  static SpatialContext unknown() => SpatialContext(
     timestamp: DateTime.now(),
     currentActivity: 'unknown',
     isAppInForeground: true,
     interactionMode: SpatialInteractionMode.idle,
+    emotionalState: 'neutral',
   );
 
-  factory SpatialContext.persistentActive() => SpatialContext(
+  static SpatialContext persistentActive() => SpatialContext(
     timestamp: DateTime.now(),
     currentActivity: 'persistent_active',
     isAppInForeground: false,
     interactionMode: SpatialInteractionMode.idle,
+    emotionalState: 'neutral',
   );
 
-  factory SpatialContext.inactive() => SpatialContext(
+  static SpatialContext inactive() => SpatialContext(
     timestamp: DateTime.now(),
     currentActivity: 'inactive',
     isAppInForeground: true,
     interactionMode: SpatialInteractionMode.idle,
+    emotionalState: 'neutral',
   );
 
-  factory SpatialContext.interacting(SpatialInteractionContext context) =>
+  static SpatialContext interacting(SpatialInteractionContext context) =>
       SpatialContext(
         timestamp: DateTime.now(),
         currentActivity: 'interacting_${context.type.toString()}',
         isAppInForeground: false,
         interactionMode: SpatialInteractionMode.listening,
-        metadata: {'context': context},
+        emotionalState: 'engaged',
       );
 
-  factory SpatialContext.intervening(
+  static SpatialContext intervening(
     SpontaneousInterventionType type,
     String message,
   ) => SpatialContext(
@@ -450,7 +451,7 @@ class SpatialContext {
     currentActivity: 'intervening_${type.toString()}',
     isAppInForeground: false,
     interactionMode: SpatialInteractionMode.speaking,
-    metadata: {'intervention_type': type, 'message': message},
+    emotionalState: 'active',
   );
 }
 

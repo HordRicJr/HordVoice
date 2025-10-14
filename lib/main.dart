@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'generated/l10n/app_localizations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Services
 import 'services/environment_config.dart';
-import 'services/permission_manager_service.dart';
 import 'services/unified_hordvoice_service.dart';
 import 'services/auth_service.dart';
 import 'services/global_error_handler.dart';
@@ -24,12 +23,12 @@ import 'theme/design_tokens.dart';
 
 // Views
 import 'views/home_view.dart';
-import 'views/permissions_view.dart';
+import 'views/priority_permissions_view.dart';
 import 'views/login_view.dart';
 import 'views/spatial_voice_onboarding_view.dart';
-import 'views/settings_view.dart';
+
 import 'localization/locale_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' as rv;
+
 
 void main() async {
   // Initialisation Flutter
@@ -153,18 +152,18 @@ class _AppInitializerState extends State<AppInitializer>
     try {
       // Étape 1: Configuration de l'environnement
       setState(() {
-        _statusMessage = AppLocalizations.of(context)?.environmentConfig ?? 'Configuring environment...';
+        _statusMessage = 'Configuration de l\'environnement...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
       final envConfig = EnvironmentConfig();
       await envConfig.loadConfig();
 
       // Étape 2: Initialisation de Supabase
       setState(() {
-        _statusMessage = AppLocalizations.of(context)?.dbInitializing ?? 'Initializing database...';
+        _statusMessage = 'Initialisation de la base de données...';
       });
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
       final supabaseUrl = envConfig.supabaseUrl;
       final supabaseKey = envConfig.supabaseAnonKey;
@@ -192,7 +191,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 3: Vérification de l'authentification RAPIDE
       setState(() {
-        _statusMessage = AppLocalizations.of(context)?.authChecking ?? 'Checking authentication...';
+        _statusMessage = 'Vérification de l\'authentification...';
       });
       await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
 
@@ -223,23 +222,22 @@ class _AppInitializerState extends State<AppInitializer>
         return;
       }
 
-      // Étape 4: Vérification des permissions essentielles RAPIDE
+      // Étape 4: Vérification des permissions prioritaires
       setState(() {
-        _statusMessage = AppLocalizations.of(context)?.permissionsChecking ?? 'Checking permissions...';
+        _statusMessage = 'Vérification des autorisations...';
       });
-      await Future.delayed(const Duration(milliseconds: 200)); // 500ms -> 200ms
+      await Future.delayed(const Duration(milliseconds: 200));
 
-      final hasEssentialPermissions =
-          await PermissionManagerService.hasEssentialPermissions();
+      // Vérifier si les permissions prioritaires ont été accordées
+      final prefs = await SharedPreferences.getInstance();
+      final priorityPermissionsGranted = prefs.getBool('priority_permissions_granted') ?? false;
 
-      if (!hasEssentialPermissions) {
-        // Redirection vers les permissions
+      if (!priorityPermissionsGranted) {
+        // Redirection vers la page d'autorisations prioritaires
         setState(() {
-          _statusMessage = 'Configuration des permissions requise...';
+          _statusMessage = 'Configuration des autorisations prioritaires...';
         });
-        await Future.delayed(
-          const Duration(milliseconds: 300),
-        ); // 800ms -> 300ms
+        await Future.delayed(const Duration(milliseconds: 300));
         await _fadeController.forward();
 
         if (mounted) {
@@ -247,11 +245,9 @@ class _AppInitializerState extends State<AppInitializer>
             PageRouteBuilder(
               pageBuilder: (context, animation, _) => FadeTransition(
                 opacity: animation,
-                child: const PermissionsView(),
+                child: const PriorityPermissionsView(),
               ),
-              transitionDuration: const Duration(
-                milliseconds: 400,
-              ), // 600ms -> 400ms
+              transitionDuration: const Duration(milliseconds: 800),
             ),
           );
         }
@@ -260,17 +256,19 @@ class _AppInitializerState extends State<AppInitializer>
 
       // Étape 3: Initialisation LÉGÈRE des services principaux
       setState(() {
-        _statusMessage = AppLocalizations.of(context)?.finalizing ?? 'Finalizing...';
+        _statusMessage = 'Finalisation de l\'initialisation...';
       });
       await Future.delayed(const Duration(milliseconds: 100)); // 500ms -> 100ms
 
-      // PAS de pré-initialisation lourde ici
+      // PAS de pré-initialisation lourde ici - juste créer l'instance
       try {
-        // Juste créer l'instance, l'initialisation se fera dans HomeView
+        // Initialisation ultra-légère - services lourds initialisés plus tard
         UnifiedHordVoiceService();
+        // Ne pas initialiser ici pour éviter les timeouts
+        debugPrint('Instance UnifiedHordVoiceService créée');
       } catch (e) {
         debugPrint('Service Unity: $e');
-        // Continuer même si l'initialisation échoue
+        // Continuer même si la création échoue
       }
 
       // Étape 4: Configuration RAPIDE de l'avatar spatial persistant
@@ -326,8 +324,7 @@ class _AppInitializerState extends State<AppInitializer>
 
       setState(() {
         _hasError = true;
-        final template = AppLocalizations.of(context)?.errorInitialization ?? 'Error during initialization: {error}';
-        _errorMessage = template.replaceFirst('{error}', e.toString());
+        _errorMessage = 'Erreur lors de l\'initialisation: ${e.toString()}';
       });
     }
   }

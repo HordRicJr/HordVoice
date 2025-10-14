@@ -1,15 +1,16 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../models/voice_models.dart';
 import '../theme/design_tokens.dart';
 
-/// Provider pour les paramètres vocaux
+/// Provider pour les paramÃ¨tres vocaux
 final voiceSettingsProvider =
     StateNotifierProvider<VoiceSettingsNotifier, VoiceSettings>((ref) {
       return VoiceSettingsNotifier();
     });
 
-/// Notifier pour gérer les paramètres vocaux
+/// Notifier pour gÃ©rer les paramÃ¨tres vocaux
 class VoiceSettingsNotifier extends StateNotifier<VoiceSettings> {
   VoiceSettingsNotifier()
     : super(VoiceSettings(selectedVoiceId: VoiceLibrary.getDefaultVoice().id));
@@ -47,7 +48,7 @@ class VoiceSettingsNotifier extends StateNotifier<VoiceSettings> {
   }
 }
 
-/// Widget de sélection de voix
+/// Widget de sÃ©lection de voix
 class VoiceSelector extends ConsumerWidget {
   final bool showPreview;
   final Function(VoiceOption)? onVoiceSelected;
@@ -75,7 +76,7 @@ class VoiceSelector extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Sélectionner une voix',
+            'SÃ©lectionner une voix',
             style: Theme.of(context).textTheme.displaySmall,
           ),
           const SizedBox(height: DesignTokens.spaceM),
@@ -95,7 +96,7 @@ class VoiceSelector extends ConsumerWidget {
 
           const SizedBox(height: DesignTokens.spaceL),
 
-          // Paramètres vocaux
+          // ParamÃ¨tres vocaux
           _buildVoiceControls(context, ref),
         ],
       ),
@@ -113,7 +114,7 @@ class VoiceSelector extends ConsumerWidget {
       child: Material(
         borderRadius: BorderRadius.circular(DesignTokens.radiusS),
         color: isSelected
-            ? DesignTokens.primaryBlue.withOpacity(0.1)
+            ? DesignTokens.primaryBlue.withValues(alpha: 0.1)
             : Colors.transparent,
         child: InkWell(
           onTap: onTap,
@@ -122,7 +123,7 @@ class VoiceSelector extends ConsumerWidget {
             padding: const EdgeInsets.all(DesignTokens.spaceM),
             child: Row(
               children: [
-                // Indicateur de sélection
+                // Indicateur de sÃ©lection
                 Container(
                   width: 20,
                   height: 20,
@@ -187,7 +188,7 @@ class VoiceSelector extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${voice.style} • ${voice.gender} • ${voice.language.toUpperCase()}',
+                        '${voice.style} â€¢ ${voice.gender} â€¢ ${voice.language.toUpperCase()}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[600],
                         ),
@@ -201,7 +202,7 @@ class VoiceSelector extends ConsumerWidget {
                   ),
                 ),
 
-                // Bouton d'aperçu
+                // Bouton d'aperÃ§u
                 if (showPreview)
                   IconButton(
                     onPressed: () => _playVoicePreview(voice),
@@ -230,7 +231,7 @@ class VoiceSelector extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Paramètres vocaux',
+          'ParamÃ¨tres vocaux',
           style: Theme.of(context).textTheme.displaySmall,
         ),
         const SizedBox(height: DesignTokens.spaceM),
@@ -274,11 +275,11 @@ class VoiceSelector extends ConsumerWidget {
 
         const SizedBox(height: DesignTokens.spaceM),
 
-        // Options avancées
+        // Options avancÃ©es
         _buildSwitchOption(
           context,
-          title: 'Ton émotionnel',
-          subtitle: 'Adapter la voix aux émotions détectées',
+          title: 'Ton Ã©motionnel',
+          subtitle: 'Adapter la voix aux Ã©motions dÃ©tectÃ©es',
           value: voiceSettings.useEmotionalTone,
           onChanged: (_) => voiceSettingsNotifier.toggleEmotionalTone(),
         ),
@@ -294,7 +295,7 @@ class VoiceSelector extends ConsumerWidget {
         _buildSwitchOption(
           context,
           title: 'Proverbes et expressions',
-          subtitle: 'Inclure des proverbes africains dans les réponses',
+          subtitle: 'Inclure des proverbes africains dans les rÃ©ponses',
           value: voiceSettings.useProverbs,
           onChanged: (_) => voiceSettingsNotifier.toggleProverbs(),
         ),
@@ -384,13 +385,44 @@ class VoiceSelector extends ConsumerWidget {
     );
   }
 
-  void _playVoicePreview(VoiceOption voice) {
-    // TODO: Implémenter la lecture d'aperçu vocal
-    debugPrint('Lecture aperçu pour ${voice.name}');
+  void _playVoicePreview(VoiceOption voice) async {
+    debugPrint('Lecture aperÃ§u pour ${voice.name}');
+    
+    try {
+      final tts = FlutterTts();
+      
+      // Configuration de la voix selon les options
+      await tts.setLanguage(voice.language);
+      
+      // DÃ©finir le texte d'aperÃ§u selon la langue
+      String previewText;
+      switch (voice.language.split('_')[0]) {
+        case 'fr':
+          previewText = 'Bonjour, je suis ${voice.name}';
+          break;
+        case 'es':
+          previewText = 'Hola, soy ${voice.name}';
+          break;
+        case 'de':
+          previewText = 'Hallo, ich bin ${voice.name}';
+          break;
+        case 'ar':
+          previewText = 'Ù…Ø±Ø­Ø¨Ø§ØŒ Ø£Ù†Ø§ ${voice.name}';
+          break;
+        default:
+          previewText = 'Hello, I am ${voice.name}';
+      }
+      
+      // Jouer l'aperÃ§u vocal
+      await tts.speak(previewText);
+      
+    } catch (e) {
+      debugPrint('Erreur lecture aperÃ§u vocal: $e');
+    }
   }
 }
 
-/// Widget compact pour afficher la voix sélectionnée
+/// Widget compact pour afficher la voix sÃ©lectionnÃ©e
 class CurrentVoiceDisplay extends ConsumerWidget {
   final VoidCallback? onTap;
 
@@ -414,7 +446,7 @@ class CurrentVoiceDisplay extends ConsumerWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(DesignTokens.radiusS),
-          border: Border.all(color: DesignTokens.primaryBlue.withOpacity(0.3)),
+          border: Border.all(color: DesignTokens.primaryBlue.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -435,7 +467,7 @@ class CurrentVoiceDisplay extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    '${currentVoice.style} • ${currentVoice.gender}',
+                    '${currentVoice.style} â€¢ ${currentVoice.gender}',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
@@ -450,3 +482,4 @@ class CurrentVoiceDisplay extends ConsumerWidget {
     );
   }
 }
+

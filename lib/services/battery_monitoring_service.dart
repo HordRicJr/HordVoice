@@ -234,6 +234,25 @@ class BatteryMonitoringService {
 
   bool get isInitialized => _isInitialized;
 
+  // Méthodes manquantes pour la compatibilité avec VoicePerformanceMonitoringService
+  Future<void> startMonitoring() async {
+    if (!_isInitialized) await initialize();
+    debugPrint('Battery monitoring démarré');
+  }
+
+  Future<void> stopMonitoring() async {
+    debugPrint('Battery monitoring arrêté');
+  }
+
+  Future<int> get currentLevel async {
+    try {
+      return await _battery.batteryLevel;
+    } catch (e) {
+      debugPrint('Erreur lors de la récupération du niveau de batterie: $e');
+      return 50; // Valeur par défaut
+    }
+  }
+
   void dispose() {
     _isInitialized = false;
   }

@@ -38,7 +38,8 @@ class AzureApiOptimizationService {
   final Queue<DateTime> _recentCacheHits = Queue();
   
   // Rate limiting
-  final Queue<DateTime> _recentRequests = Queue();
+  // Queue for request tracking - used for rate limiting
+  // final Queue<DateTime> _recentRequests = Queue();
   final Map<String, Queue<DateTime>> _endpointRequests = {};
 
   // Batching des requêtes
@@ -65,6 +66,7 @@ class AzureApiOptimizationService {
   int _rateLimitedRequests = 0;
   int _failedRequests = 0;
   double _averageLatency = 0.0;
+  // Cache hit ratio tracking
   double _cacheHitRatio = 0.0;
 
   // Accesseurs publics
@@ -79,7 +81,7 @@ class AzureApiOptimizationService {
     'batched_requests': _batchedRequests,
     'rate_limited_requests': _rateLimitedRequests,
     'failed_requests': _failedRequests,
-    'cache_hit_ratio': cacheHitRatio,
+    'cache_hit_ratio': _cacheHitRatio,
     'batching_ratio': batchingRatio,
     'average_latency_ms': _averageLatency,
     'active_cache_entries': _cache.length,
@@ -490,7 +492,7 @@ class AzureApiOptimizationService {
       case 'speech':
         return 'https://${_envConfig.azureSpeechRegion}.api.cognitive.microsoft.com/';
       case 'openai':
-        return _envConfig.azureOpenAiEndpoint ?? 'https://api.openai.com/v1/';
+        return _envConfig.azureOpenAIEndpoint ?? 'https://api.openai.com/v1/';
       case 'cognitive':
         return 'https://${_envConfig.azureSpeechRegion}.cognitiveservices.azure.com/';
       default:
@@ -508,13 +510,13 @@ class AzureApiOptimizationService {
         }
         break;
       case 'openai':
-        final openAiKey = _envConfig.azureOpenAiKey;
+        final openAiKey = _envConfig.azureOpenAIKey;
         if (openAiKey != null) {
           headers['Authorization'] = 'Bearer $openAiKey';
         }
         break;
       case 'cognitive':
-        final cognitiveKey = _envConfig.azureCognitiveKey;
+        final cognitiveKey = _envConfig.azureSpeechKey;
         if (cognitiveKey != null) {
           headers['Ocp-Apim-Subscription-Key'] = cognitiveKey;
         }

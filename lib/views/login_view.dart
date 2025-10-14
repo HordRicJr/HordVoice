@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
@@ -6,7 +6,7 @@ import 'register_view.dart';
 import 'home_view.dart';
 import 'spatial_voice_onboarding_view.dart';
 
-/// Vue de connexion IA vocale avec design spécifié
+/// Vue de connexion IA vocale avec design spÃ©cifiÃ©
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
 
@@ -91,27 +91,31 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       );
 
       if (success && mounted) {
-        // Vérifier si l'onboarding spatial a été complété
+        // VÃ©rifier si l'onboarding spatial a Ã©tÃ© complÃ©tÃ©
         final prefs = await SharedPreferences.getInstance();
         final onboardingCompleted =
             prefs.getBool('onboarding_completed') ?? false;
 
         if (!onboardingCompleted) {
           // Première connexion → Onboarding spatial
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, _) => FadeTransition(
-                opacity: animation,
-                child: const SpatialVoiceOnboardingView(),
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, _) => FadeTransition(
+                  opacity: animation,
+                  child: const SpatialVoiceOnboardingView(),
+                ),
+                transitionDuration: const Duration(milliseconds: 800),
               ),
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
-          );
+            );
+          }
         } else {
           // Utilisateur existant → HomeView
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeView()),
-          );
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomeView()),
+            );
+          }
         }
       } else {
         setState(() {
@@ -146,7 +150,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       return 'Mot de passe requis';
     }
     if (value.length < 6) {
-      return 'Minimum 6 caractères';
+      return 'Minimum 6 caractÃ¨res';
     }
     return null;
   }
@@ -170,7 +174,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
                 const SizedBox(height: 40),
 
-                // Visuel d'introduction (Avatar animé)
+                // Visuel d'introduction (Avatar animÃ©)
                 _buildAnimatedAvatar(),
 
                 const SizedBox(height: 40),
@@ -200,7 +204,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
 
                 const SizedBox(height: 24),
 
-                // Footer / Mentions légales
+                // Footer / Mentions lÃ©gales
                 _buildFooter(),
               ],
             ),
@@ -225,7 +229,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 8),
         Text(
-          'Votre assistant vocal africain personnalisé',
+          'Votre assistant vocal africain personnalisÃ©',
           style: TextStyle(
             fontSize: 16,
             fontStyle: FontStyle.italic,
@@ -245,8 +249,8 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF007AFF).withOpacity(0.1),
-            const Color(0xFFFF9500).withOpacity(0.1),
+            const Color(0xFF007AFF).withValues(alpha: 0.1),
+            const Color(0xFFFF9500).withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -258,14 +262,14 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
           return Stack(
             alignment: Alignment.center,
             children: [
-              // Ondes sonores animées
+              // Ondes sonores animÃ©es
               Container(
                 height: 80 + (_avatarAnimation.value * 20),
                 width: 80 + (_avatarAnimation.value * 20),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFFF9500).withOpacity(0.3),
+                    color: const Color(0xFFFF9500).withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
@@ -276,7 +280,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF007AFF).withOpacity(0.2),
+                    color: const Color(0xFF007AFF).withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -290,7 +294,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   color: const Color(0xFF007AFF),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF007AFF).withOpacity(0.3),
+                      color: const Color(0xFF007AFF).withValues(alpha: 0.3),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -414,7 +418,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 4,
-                shadowColor: const Color(0xFFFF9500).withOpacity(0.3),
+                shadowColor: const Color(0xFFFF9500).withValues(alpha: 0.3),
               ),
               child: _isLoading
                   ? SizedBox(
@@ -447,7 +451,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         ).push(MaterialPageRoute(builder: (context) => const RegisterView()));
       },
       child: Text(
-        'Pas encore inscrit ? Créez un compte',
+        'Pas encore inscrit ? CrÃ©ez un compte',
         style: TextStyle(
           color: const Color(0xFF007AFF),
           fontSize: 16,
@@ -466,7 +470,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Text(
-        'Connectez-vous pour synchroniser vos données vocales et profiter pleinement de HordVoice',
+        'Connectez-vous pour synchroniser vos donnÃ©es vocales et profiter pleinement de HordVoice',
         style: TextStyle(
           color: Colors.grey.shade700,
           fontSize: 14,
@@ -481,9 +485,9 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF007AFF).withOpacity(0.1),
+        color: const Color(0xFF007AFF).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF007AFF).withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -501,7 +505,7 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              'Une fois connecté, interagissez uniquement par la voix.',
+              'Une fois connectÃ©, interagissez uniquement par la voix.',
               style: TextStyle(
                 color: const Color(0xFF007AFF),
                 fontSize: 12,
@@ -520,10 +524,10 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
       children: [
         TextButton(
           onPressed: () {
-            // TODO: Ouvrir politique de confidentialité
+            _showPrivacyPolicy(context);
           },
           child: Text(
-            'Politique de confidentialité',
+            'Politique de confidentialitÃ©',
             style: TextStyle(
               color: Colors.grey.shade600,
               fontSize: 12,
@@ -533,11 +537,69 @@ class _LoginViewState extends State<LoginView> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 8),
         Text(
-          'La connexion sécurise vos données vocales en ligne',
+          'La connexion sÃ©curise vos donnÃ©es vocales en ligne',
           style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
+
+  /// Affiche la politique de confidentialitÃ©
+  void _showPrivacyPolicy(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Politique de confidentialitÃ©'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  'Protection de vos donnÃ©es',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'â€¢ Vos donnÃ©es vocales sont chiffrÃ©es de bout en bout\n'
+                  'â€¢ Aucune donnÃ©e n\'est stockÃ©e sans votre consentement\n'
+                  'â€¢ Vous pouvez supprimer vos donnÃ©es Ã  tout moment\n'
+                  'â€¢ Nous respectons le RGPD et les lois sur la confidentialitÃ©\n',
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Utilisation des donnÃ©es',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'â€¢ Les donnÃ©es vocales amÃ©liorent la prÃ©cision de reconnaissance\n'
+                  'â€¢ Les prÃ©fÃ©rences sont sauvegardÃ©es localement\n'
+                  'â€¢ Aucune donnÃ©e n\'est partagÃ©e avec des tiers\n',
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Contact',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Pour toute question sur la confidentialitÃ©, contactez-nous Ã  privacy@hordvoice.com',
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Fermer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
+

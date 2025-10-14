@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../widgets/permission_manager_widget.dart';
 
-/// Vue dédiée à la gestion des permissions
+/// Vue dÃ©diÃ©e Ã  la gestion des permissions
 class PermissionsView extends StatefulWidget {
   const PermissionsView({super.key});
 
@@ -25,7 +25,7 @@ class _PermissionsViewState extends State<PermissionsView> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).primaryColor.withOpacity(0.1),
+              Theme.of(context).primaryColor.withValues(alpha: 0.1),
               Colors.transparent,
             ],
           ),
@@ -56,7 +56,7 @@ class _PermissionsViewState extends State<PermissionsView> {
                 Icon(Icons.info_outline, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 8),
                 Text(
-                  'À propos des permissions',
+                  'Ã€ propos des permissions',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -65,17 +65,17 @@ class _PermissionsViewState extends State<PermissionsView> {
             ),
             const SizedBox(height: 12),
             Text(
-              'HordVoice utilise différentes permissions pour vous offrir la meilleure expérience possible. '
-              'Toutes les permissions sont optionnelles, mais certaines améliorent considérablement les fonctionnalités.',
+              'HordVoice utilise diffÃ©rentes permissions pour vous offrir la meilleure expÃ©rience possible. '
+              'Toutes les permissions sont optionnelles, mais certaines amÃ©liorent considÃ©rablement les fonctionnalitÃ©s.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -83,7 +83,7 @@ class _PermissionsViewState extends State<PermissionsView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Toutes vos données restent privées et locales sur votre appareil.',
+                      'Toutes vos donnÃ©es restent privÃ©es et locales sur votre appareil.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.blue.shade700,
                         fontWeight: FontWeight.w500,
@@ -121,21 +121,21 @@ class _PermissionsViewState extends State<PermissionsView> {
             const SizedBox(height: 12),
             _buildTip(
               'Permissions essentielles',
-              'Le microphone est indispensable pour que HordVoice puisse vous entendre et vous répondre.',
+              'Le microphone est indispensable pour que HordVoice puisse vous entendre et vous rÃ©pondre.',
               Icons.mic,
               Colors.red,
             ),
             const SizedBox(height: 8),
             _buildTip(
-              'Fonctionnalités avancées',
-              'La localisation permet la météo locale et la navigation. Les contacts permettent d\'appeler par la voix.',
+              'FonctionnalitÃ©s avancÃ©es',
+              'La localisation permet la mÃ©tÃ©o locale et la navigation. Les contacts permettent d\'appeler par la voix.',
               Icons.location_on,
               Colors.blue,
             ),
             const SizedBox(height: 8),
             _buildTip(
-              'Expérience personnalisée',
-              'Le stockage local permet de sauvegarder vos préférences et d\'améliorer les réponses.',
+              'ExpÃ©rience personnalisÃ©e',
+              'Le stockage local permet de sauvegarder vos prÃ©fÃ©rences et d\'amÃ©liorer les rÃ©ponses.',
               Icons.storage,
               Colors.green,
             ),
@@ -143,7 +143,7 @@ class _PermissionsViewState extends State<PermissionsView> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
@@ -152,7 +152,7 @@ class _PermissionsViewState extends State<PermissionsView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Vous pouvez modifier ces permissions à tout moment dans les paramètres de l\'appareil.',
+                      'Vous pouvez modifier ces permissions Ã  tout moment dans les paramÃ¨tres de l\'appareil.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
                       ),
@@ -179,7 +179,7 @@ class _PermissionsViewState extends State<PermissionsView> {
         Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Icon(icon, size: 16, color: color),
@@ -208,3 +208,4 @@ class _PermissionsViewState extends State<PermissionsView> {
     );
   }
 }
+

@@ -19,6 +19,36 @@
 -keep class org.tensorflow.lite.gpu.GpuDelegateFactory** { *; }
 -dontwarn org.tensorflow.lite.gpu.**
 
+# Micrometer et Reactor Core - classes nécessaires
+-keep class io.micrometer.core.instrument.** { *; }
+-keep class reactor.core.** { *; }
+-keep class reactor.util.** { *; }
+-dontwarn io.micrometer.core.instrument.**
+-dontwarn reactor.core.**
+-dontwarn reactor.util.**
+
+# Classes Sun/Oracle internes manquantes
+-dontwarn sun.misc.**
+-dontwarn java.lang.instrument.**
+
+# Fix for reactor blockhound missing classes - Configuration complète
+-keep class reactor.** { *; }
+-dontwarn reactor.blockhound.**
+-dontwarn reactor.blockhound.integration.**
+-keep class reactor.blockhound.** { *; }
+-keep class reactor.blockhound.integration.** { *; }
+-dontwarn reactor.core.scheduler.ReactorBlockHoundIntegration
+-keep class reactor.core.scheduler.ReactorBlockHoundIntegration { *; }
+-keep interface reactor.blockhound.integration.BlockHoundIntegration
+-keep class * implements reactor.blockhound.integration.BlockHoundIntegration
+
+# Fix for device_calendar warnings
+-keep class com.builttoroam.devicecalendar.** { *; }
+-dontwarn com.builttoroam.devicecalendar.**
+
+# Fix for wakelock_plus
+-keep class dev.fluttercommunity.plus.wakelock.** { *; }
+
 # Google ML Kit
 -keep class com.google.mlkit.** { *; }
 -keep class com.google.android.gms.** { *; }
@@ -177,6 +207,17 @@
 
 # Hive database
 -keep class io.github.hivedb.** { *; }
+
+# Additional rules to fix missing classes
+-keep class kotlin.** { *; }
+-keep class kotlinx.** { *; }
+-dontwarn kotlinx.**
+
+# Fix DateUtils deprecated warning
+-dontwarn android.text.format.DateUtils
+
+# Global Scope usage (device_calendar)
+-dontwarn kotlinx.coroutines.GlobalScope
 -keep class hive.** { *; }
 
 # Background services
@@ -185,7 +226,19 @@
 # Charts et UI
 -keep class com.github.mikephil.charting.** { *; }
 
+# Kotlin incremental compilation fixes
+-dontwarn org.jetbrains.kotlin.**
+-keep class org.jetbrains.kotlin.** { *; }
+-keep class kotlin.** { *; }
+-dontwarn kotlinx.**
+-keep class kotlinx.** { *; }
+
+# Fix storage registration conflicts
+-dontwarn com.google.firebase.components.**
+-keep class com.google.firebase.components.** { *; }
+
 # R8 optimisation modérée (moins agressive)
 -dontobfuscate
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
--keepattributes *Annotation*,InnerClasses,Signature,Exceptions
+-keepattributes *Annotation*,InnerClasses,Signature,Exceptions,EnclosingMethod
+-keepattributes SourceFile,LineNumberTable

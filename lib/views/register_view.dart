@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
@@ -6,7 +6,7 @@ import 'home_view.dart';
 import 'login_view.dart';
 import 'spatial_voice_onboarding_view.dart';
 
-/// Vue d'inscription avec design cohérent avec LoginView
+/// Vue d'inscription avec design cohÃ©rent avec LoginView
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
 
@@ -110,27 +110,31 @@ class _RegisterViewState extends State<RegisterView>
       );
 
       if (success && mounted) {
-        // Vérifier si c'est la première inscription (onboarding nécessaire)
+        // VÃ©rifier si c'est la premiÃ¨re inscription (onboarding nÃ©cessaire)
         final prefs = await SharedPreferences.getInstance();
         final onboardingCompleted =
             prefs.getBool('onboarding_completed') ?? false;
 
         if (!onboardingCompleted) {
           // Première inscription → Onboarding spatial
-          Navigator.of(context).pushReplacement(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, _) => FadeTransition(
-                opacity: animation,
-                child: const SpatialVoiceOnboardingView(),
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              PageRouteBuilder(
+                pageBuilder: (context, animation, _) => FadeTransition(
+                  opacity: animation,
+                  child: const SpatialVoiceOnboardingView(),
+                ),
+                transitionDuration: const Duration(milliseconds: 800),
               ),
-              transitionDuration: const Duration(milliseconds: 800),
-            ),
-          );
+            );
+          }
         } else {
           // Utilisateur existant → HomeView
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeView()),
-          );
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const HomeView()),
+            );
+          }
         }
       } else {
         setState(() {
@@ -165,7 +169,7 @@ class _RegisterViewState extends State<RegisterView>
       return 'Mot de passe requis';
     }
     if (value.length < 6) {
-      return 'Minimum 6 caractères';
+      return 'Minimum 6 caractÃ¨res';
     }
     return null;
   }
@@ -175,7 +179,7 @@ class _RegisterViewState extends State<RegisterView>
       return 'Ce champ est requis';
     }
     if (value.length < 2) {
-      return 'Minimum 2 caractères';
+      return 'Minimum 2 caractÃ¨res';
     }
     return null;
   }
@@ -185,7 +189,7 @@ class _RegisterViewState extends State<RegisterView>
       return 'Confirmation requise';
     }
     if (value != _passwordController.text) {
-      return 'Mots de passe différents';
+      return 'Mots de passe diffÃ©rents';
     }
     return null;
   }
@@ -210,12 +214,12 @@ class _RegisterViewState extends State<RegisterView>
 
                 const SizedBox(height: 30),
 
-                // Visuel d'introduction (Avatar animé)
+                // Visuel d'introduction (Avatar animÃ©)
                 _buildAnimatedAvatar(),
 
                 const SizedBox(height: 30),
 
-                // Message d'erreur général
+                // Message d'erreur gÃ©nÃ©ral
                 if (_generalError != null) _buildErrorBanner(),
 
                 // Formulaire d'inscription
@@ -260,7 +264,7 @@ class _RegisterViewState extends State<RegisterView>
         ),
         const SizedBox(height: 8),
         Text(
-          'Créez votre profil vocal personnalisé',
+          'CrÃ©ez votre profil vocal personnalisÃ©',
           style: TextStyle(
             fontSize: 16,
             fontStyle: FontStyle.italic,
@@ -280,8 +284,8 @@ class _RegisterViewState extends State<RegisterView>
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [
-            const Color(0xFF007AFF).withOpacity(0.1),
-            const Color(0xFFFF9500).withOpacity(0.1),
+            const Color(0xFF007AFF).withValues(alpha: 0.1),
+            const Color(0xFFFF9500).withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -293,14 +297,14 @@ class _RegisterViewState extends State<RegisterView>
           return Stack(
             alignment: Alignment.center,
             children: [
-              // Ondes sonores animées
+              // Ondes sonores animÃ©es
               Container(
                 height: 60 + (_avatarAnimation.value * 15),
                 width: 60 + (_avatarAnimation.value * 15),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFFFF9500).withOpacity(0.3),
+                    color: const Color(0xFFFF9500).withValues(alpha: 0.3),
                     width: 2,
                   ),
                 ),
@@ -311,7 +315,7 @@ class _RegisterViewState extends State<RegisterView>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF007AFF).withOpacity(0.2),
+                    color: const Color(0xFF007AFF).withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -325,7 +329,7 @@ class _RegisterViewState extends State<RegisterView>
                   color: const Color(0xFF007AFF),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF007AFF).withOpacity(0.3),
+                      color: const Color(0xFF007AFF).withValues(alpha: 0.3),
                       blurRadius: 10,
                       spreadRadius: 2,
                     ),
@@ -368,7 +372,7 @@ class _RegisterViewState extends State<RegisterView>
   Widget _buildRegisterForm() {
     return Column(
       children: [
-        // Prénom et Nom sur la même ligne
+        // PrÃ©nom et Nom sur la mÃªme ligne
         Row(
           children: [
             Expanded(
@@ -376,7 +380,7 @@ class _RegisterViewState extends State<RegisterView>
                 controller: _firstNameController,
                 style: const TextStyle(fontSize: 16),
                 decoration: InputDecoration(
-                  hintText: 'Prénom',
+                  hintText: 'PrÃ©nom',
                   prefixIcon: Icon(
                     Icons.person_outline,
                     color: Colors.grey.shade600,
@@ -479,7 +483,7 @@ class _RegisterViewState extends State<RegisterView>
           obscureText: _obscurePassword,
           style: const TextStyle(fontSize: 16),
           decoration: InputDecoration(
-            hintText: 'Mot de passe (min. 6 caractères)',
+            hintText: 'Mot de passe (min. 6 caractÃ¨res)',
             prefixIcon: Icon(Icons.lock_outline, color: Colors.grey.shade600),
             suffixIcon: IconButton(
               icon: Icon(
@@ -584,7 +588,7 @@ class _RegisterViewState extends State<RegisterView>
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 4,
-                shadowColor: const Color(0xFFFF9500).withOpacity(0.3),
+                shadowColor: const Color(0xFFFF9500).withValues(alpha: 0.3),
               ),
               child: _isLoading
                   ? SizedBox(
@@ -596,7 +600,7 @@ class _RegisterViewState extends State<RegisterView>
                       ),
                     )
                   : const Text(
-                      'Créer mon compte',
+                      'CrÃ©er mon compte',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -631,9 +635,9 @@ class _RegisterViewState extends State<RegisterView>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF007AFF).withOpacity(0.1),
+        color: const Color(0xFF007AFF).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF007AFF).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF007AFF).withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -665,3 +669,4 @@ class _RegisterViewState extends State<RegisterView>
     );
   }
 }
+

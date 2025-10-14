@@ -7,18 +7,22 @@ plugins {
 
 android {
     namespace = "com.hordvoice.hordvoice"
-    compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    compileSdk = 36  // Version requise pour les plugins modernes
+    ndkVersion = "27.0.12077973"  // Version requise par les plugins
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+    
+    // Optimisations pour éviter les timeouts AAPT2
+    aaptOptions {
+        noCompress += listOf("tflite", "lite", "txt")
+        ignoreAssetsPattern = "!.svn:!.git:!.DS_Store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
     }
+
+
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
@@ -37,12 +41,26 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Désactiver la minification temporairement pour éviter les timeouts
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            isDebuggable = false
+        }
+        debug {
+            isMinifyEnabled = false
+            isShrinkResources = false
+            isDebuggable = true
+        }
+    }
+    
+    // Optimisations pour éviter les timeouts de compilation
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/versions/9/previous-compilation-data.bin"
         }
     }
 }
@@ -51,12 +69,36 @@ flutter {
     source = "../.."
 }
 
+// Configuration JVM Toolchain locale pour garantir la cohérence
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
+// Configuration des tâches Kotlin avec la nouvelle syntaxe DSL
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.addAll(
+            "-Xno-call-assertions",
+            "-Xno-param-assertions",
+            "-Xno-receiver-assertions"
+        )
+    }
+}
+
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
-    // Azure Speech SDK
+    // Azure Speech SDK (version compatible avec SDK 36 et Java 17)
     implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.46.0")
     
-    // Support pour les coroutines Kotlin (nécessaire pour Azure Speech)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    // Support pour les coroutines Kotlin (version récente compatible Java 17)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    
+    // Support pour les nouvelles versions Android avec Java 17
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.annotation:annotation:1.8.2")
 }
