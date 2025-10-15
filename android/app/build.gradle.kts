@@ -95,7 +95,7 @@ dependencies {
     implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.46.0")
     
     // Support pour les coroutines Kotlin (version récente compatible Java 17)
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     
     // Support pour les nouvelles versions Android avec Java 17
     implementation("androidx.core:core-ktx:1.13.1")
