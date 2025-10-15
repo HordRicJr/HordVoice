@@ -64,7 +64,9 @@ class AudioBufferOptimizationService {
     'fragmentation_ratio': _fragmentationRatio,
     'optimal_size': _currentOptimalSize,
     'active_pools': _bufferPools.length,
-    'total_pooled_buffers': _bufferPools.values.map((q) => q.length).reduce((a, b) => a + b),
+    'total_pooled_buffers': _bufferPools.values.isEmpty 
+        ? 0 
+        : _bufferPools.values.map((q) => q.length).reduce((a, b) => a + b),
   };
 
   /// Initialise le service d'optimisation des buffers
@@ -270,16 +272,29 @@ class AudioBufferOptimizationService {
   void _trackBufferSizeUsage(int size) {
     _recentBufferSizes.add(size);
     
-    // Limiter l'historique
-      final _historyTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'BufferHistoryTrim');
-      while (_recentBufferSizes.length > _sizeHistoryLimit) {
+    // Limiter l'historique avec protection contre les boucles infinies
+    if (_recentBufferSizes.length > _sizeHistoryLimit) {
+      final _historyTrimGuard = LoopGuard(
+        maxIterations: 100, 
+        timeBudget: Duration(milliseconds: 500), 
+        label: 'BufferHistoryTrim'
+      );
+      
+      while (_recentBufferSizes.length > _sizeHistoryLimit && _historyTrimGuard.next()) {
         _recentBufferSizes.removeAt(0);
-        _historyTrimGuard.iterate();
-        if (_historyTrimGuard.shouldBreak) {
-          WatchdogService.notify('Buffer history trimming loop exceeded safe limits', context: 'audio_buffer_optimization_service');
-          break;
+      }
+      
+      if (!_historyTrimGuard.next()) {
+        WatchdogService.instance.notifyTimerCallback('audio_buffer_history_trim_exceeded');
+        debugPrint('⚠️ Buffer history trimming exceeded safe limits, forcing cleanup');
+        
+        // Nettoyage d'urgence : garder seulement les dernières valeurs
+        final keepSize = (_sizeHistoryLimit * 0.5).round();
+        if (_recentBufferSizes.length > keepSize) {
+          _recentBufferSizes.removeRange(0, _recentBufferSizes.length - keepSize);
         }
       }
+    }
 
     // Mettre à jour la taille optimale si on a assez de données
     if (_recentBufferSizes.length >= 20) {
@@ -419,14 +434,29 @@ class AudioBufferOptimizationService {
       // Réduire la taille des pools très grands
       _bufferPools.forEach((size, pool) {
         const maxIdleBuffers = _maxPoolSize ~/ 2;
-        final _poolTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'BufferPoolTrim');
-        while (pool.length > maxIdleBuffers) {
-          pool.removeFirst();
-          buffersRemoved++;
-          _poolTrimGuard.iterate();
-          if (_poolTrimGuard.shouldBreak) {
-            WatchdogService.notify('Buffer pool trimming loop exceeded safe limits', context: 'audio_buffer_optimization_service');
-            break;
+        if (pool.length > maxIdleBuffers) {
+          final _poolTrimGuard = LoopGuard(
+            maxIterations: 100, 
+            timeBudget: Duration(milliseconds: 500), 
+            label: 'BufferPoolTrim'
+          );
+          
+          while (pool.length > maxIdleBuffers && _poolTrimGuard.next()) {
+            pool.removeFirst();
+            buffersRemoved++;
+          }
+          
+          if (!_poolTrimGuard.next()) {
+            WatchdogService.instance.notifyTimerCallback('audio_buffer_pool_trim_exceeded');
+            debugPrint('⚠️ Buffer pool trimming exceeded safe limits for size $size');
+            
+            // Nettoyage d'urgence : vider le pool complètement si nécessaire
+            if (pool.length > _maxPoolSize) {
+              final removedInEmergency = pool.length;
+              pool.clear();
+              buffersRemoved += removedInEmergency;
+              debugPrint('🚨 Emergency pool cleanup: removed $removedInEmergency buffers of size $size');
+            }
           }
         }
       });

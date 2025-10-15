@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import '../core/safety/loop_guard.dart';
 import '../core/safety/watchdog_service.dart';
 import 'battery_monitoring_service.dart';
@@ -330,16 +329,28 @@ class VoicePerformanceMonitoringService {
   void _addMetric(VoiceMetric metric) {
     _metricsHistory.add(metric);
 
-    // Limiter la taille de l'historique
-    while (_metricsHistory.length > _maxHistorySize) {
-      final _metricsTrimGuard = LoopGuard(maxIterations: 100, timeout: Duration(milliseconds: 500), label: 'MetricsHistoryTrim');
-      while (_metricsHistory.length > _maxHistorySize) {
+    // Limiter la taille de l'historique avec protection contre les boucles infinies
+    if (_metricsHistory.length > _maxHistorySize) {
+      final _metricsTrimGuard = LoopGuard(
+        maxIterations: 100, 
+        timeBudget: Duration(milliseconds: 500), 
+        label: 'MetricsHistoryTrim'
+      );
+      
+      while (_metricsHistory.length > _maxHistorySize && _metricsTrimGuard.next()) {
         _metricsHistory.removeFirst();
-        _metricsTrimGuard.iterate();
-        if (_metricsTrimGuard.shouldBreak) {
-          WatchdogService.notify('Metrics history trimming loop exceeded safe limits', context: 'voice_performance_monitoring_service');
-          break;
+      }
+      
+      if (!_metricsTrimGuard.next()) {
+        WatchdogService.instance.notifyTimerCallback('voice_metrics_trim_exceeded');
+        debugPrint(' Metrics history trimming exceeded safe limits. History size: ${_metricsHistory.length}');
+        
+        // Nettoyage d'urgence : garder seulement les métriques les plus récentes
+        final emergencySize = (_maxHistorySize * 0.5).round();
+        while (_metricsHistory.length > emergencySize) {
+          _metricsHistory.removeFirst();
         }
+        debugPrint(' Emergency metrics cleanup: reduced to $emergencySize entries');
       }
     }
 
