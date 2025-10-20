@@ -35,7 +35,7 @@ dependencies:
 
   # LOCATION - Version compatible
   location: ^8.0.1
-  geolocator: 10.1.0
+  geolocator: 14.0.2
   geocoding: ^3.0.0
 
   # STOCKAGE - Base de données
