@@ -94,7 +94,7 @@ dependencies:
   # SURVEILLANCE TÉLÉPHONE - Santé et performance
   app_usage: ^4.0.1 # Usage applications
   battery_plus: ^6.2.2 # Informations batterie
-  system_info2: ^4.0.0 # Informations système
+  system_info2: ^4.1.0 # Informations système
   flutter_webrtc: ^1.0.0
 
   # AUTRES UTILITAIRES
