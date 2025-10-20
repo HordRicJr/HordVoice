@@ -27,7 +27,7 @@ dependencies:
 
   # VOIX  Reconnaissance et synthèse COMPLÈTE
   azure_speech_recognition_flutter: ^1.0.2 # Azure Speech Recognition
-  avatar_glow: 2.0.2 # Animation microphone
+  avatar_glow: 3.0.1 # Animation microphone
   flutter_tts: 3.8.5 # Synthèse vocale (version stable)
   flutter_secure_storage: ^9.2.2 # Stockage sécurisé profil vocal
   just_audio: ^0.9.40 # Gestion audio avancée
