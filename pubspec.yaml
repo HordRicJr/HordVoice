@@ -131,7 +131,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  flutter_launcher_icons: ^0.13.1 # Configuration icônes
+  flutter_launcher_icons: ^0.14.4 # Configuration icônes
 
   # Test dependencies for comprehensive unit testing
   mockito: ^5.4.4 # Mock objects for testing
