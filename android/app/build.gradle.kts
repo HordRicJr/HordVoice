@@ -99,6 +99,6 @@ dependencies {
     
     // Support pour les nouvelles versions Android avec Java 17
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.annotation:annotation:1.9.1")
 }
