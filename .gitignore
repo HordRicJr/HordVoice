@@ -64,3 +64,8 @@ database/
 *.db
 *.sqlite
 *.sqlite3
+
+# Allow tracked Supabase migrations
+!database/
+!database/supabase_migration_voices.sql
+!database/insert_fallback_data.sql
