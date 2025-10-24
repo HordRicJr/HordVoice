@@ -63,16 +63,25 @@ class DatabaseInitializationService {
   Future<bool> _tableExists(String tableName) async {
     try {
       // Essayer une requête simple sur la table
-      await _supabase.from(tableName).select('*').limit(1);
+      await _supabase.from(tableName).select('id').limit(1);
       return true;
     } catch (e) {
-      // Si erreur PGRST116 ou table non trouvée
-      if (e.toString().contains('PGRST116') ||
-          e.toString().contains('relation') ||
-          e.toString().contains('does not exist')) {
+      if (e is PostgrestException) {
+        final code = e.code?.toUpperCase();
+        if (code == 'PGRST116' || code == '42P01') {
+          return false;
+        }
+        if (e.message.toLowerCase().contains('does not exist')) {
+          return false;
+        }
+      } else if (e.toString().contains('PGRST116') ||
+          e.toString().toLowerCase().contains('does not exist') ||
+          e.toString().toLowerCase().contains('relation')) {
+        // Si erreur PGRST116 ou table non trouvée
         return false;
       }
       // Autres erreurs = table existe mais autre problème
+      debugPrint('⚠️ Impossible de vérifier la table $tableName: $e');
       return true;
     }
   }
@@ -80,12 +89,10 @@ class DatabaseInitializationService {
   /// Crée la table available_voices
   Future<void> _createAvailableVoicesTable() async {
     try {
-      // Note: En production, les tables doivent être créées côté serveur
-      // Cette méthode est pour le développement/test local
       debugPrint('📝 Création table available_voices...');
-
-      // En attendant la création côté serveur, on utilise des données en dur
-      debugPrint('✅ Table available_voices créée (mode fallback)');
+      debugPrint(
+        '➡️ Action requise: exécutez database/supabase_migration_voices.sql dans Supabase SQL Editor.',
+      );
     } catch (e) {
       debugPrint('⚠️ Impossible de créer available_voices: $e');
     }
@@ -127,46 +134,60 @@ class DatabaseInitializationService {
 
         final defaultVoices = [
           {
-            'voice_name': 'Denise (Française)',
-            'voice_id': 'fr-FR-DeniseNeural',
-            'language_code': 'fr-FR',
+            'id': 'fr-FR-DeniseNeural',
+            'name': 'Denise',
+            'language': 'fr-FR',
+            'style': 'natural',
             'gender': 'female',
-            'accent': 'parisien',
-            'provider': 'azure',
-            'quality_level': 'neural',
-            'is_active': true,
             'description': 'Voix féminine française naturelle',
+            'provider': 'azure',
+            'quality_level': 'neural',
+            'accent': 'fr-standard',
+            'is_available': true,
+            'is_active': true,
+            'is_premium': false,
           },
           {
-            'voice_name': 'Henri (Français)',
-            'voice_id': 'fr-FR-HenriNeural',
-            'language_code': 'fr-FR',
+            'id': 'fr-FR-HenriNeural',
+            'name': 'Henri',
+            'language': 'fr-FR',
+            'style': 'natural',
             'gender': 'male',
-            'accent': 'parisien',
+            'description': 'Voix masculine française naturelle',
             'provider': 'azure',
             'quality_level': 'neural',
+            'accent': 'fr-standard',
+            'is_available': true,
             'is_active': true,
-            'description': 'Voix masculine française naturelle',
+            'is_premium': false,
           },
           {
-            'voice_name': 'Aria (Anglaise)',
-            'voice_id': 'en-US-AriaNeural',
-            'language_code': 'en-US',
+            'id': 'en-US-AriaNeural',
+            'name': 'Aria',
+            'language': 'en-US',
+            'style': 'natural',
             'gender': 'female',
-            'accent': 'americain',
+            'description': 'Voix féminine anglaise naturelle',
             'provider': 'azure',
             'quality_level': 'neural',
+            'accent': 'en-us',
+            'is_available': true,
             'is_active': true,
-            'description': 'Voix féminine anglaise naturelle',
+            'is_premium': false,
           },
         ];
 
-        await _supabase.from('available_voices').insert(defaultVoices);
+        await _supabase
+            .from('available_voices')
+            .upsert(defaultVoices, onConflict: 'id');
 
         debugPrint('✅ Voix par défaut insérées');
       }
     } catch (e) {
       debugPrint('⚠️ Erreur insertion voix par défaut: $e');
+      debugPrint(
+        '➡️ Action recommandée: exécuter database/insert_fallback_data.sql dans Supabase pour injecter les voix par défaut.',
+      );
     }
   }
 
@@ -256,8 +277,12 @@ class DatabaseInitializationService {
 
       // Test 2: Table available_voices
       try {
-        await _supabase.from('available_voices').select('id').limit(1);
-        healthChecks['available_voices'] = true;
+        final voicesCheck = await _supabase
+            .from('available_voices')
+            .select('id')
+            .eq('is_available', true)
+            .limit(1);
+        healthChecks['available_voices'] = voicesCheck.isNotEmpty;
       } catch (e) {
         healthChecks['available_voices'] = false;
       }

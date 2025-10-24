@@ -30,10 +30,10 @@ class VoiceManagementService {
 
     try {
       _supabase = Supabase.instance.client;
-      
+
       // D'abord setup les voix par défaut pour assurer qu'on a toujours quelque chose
       _setupDefaultVoices();
-      
+
       // Ensuite essayer de charger depuis la base ou Azure
       await _loadAvailableVoices();
       await _loadSelectedVoice();
@@ -66,20 +66,38 @@ class VoiceManagementService {
       try {
         final response = await _supabase
             .from('available_voices')
-            .select()
+            .select(
+              'id,name,language,style,gender,description,is_available,is_premium,is_active',
+            )
+            .eq('is_available', true)
             .eq('is_active', true)
-            .order('voice_name')
-            .timeout(Duration(seconds: 3)); // Timeout pour éviter d'attendre trop
+            .order('name')
+            .timeout(
+              const Duration(seconds: 3),
+            ); // Timeout pour éviter d'attendre trop
 
         if (response.isNotEmpty) {
-          _availableVoices = (response as List)
+          final voices = response
               .map((json) => VoiceOption.fromJson(json))
+              .where((voice) => voice.id.isNotEmpty)
               .toList();
+
+          if (voices.isNotEmpty) {
+            _availableVoices = voices;
+          } else {
+            debugPrint(
+              '⚠️ Voix récupérées mais sans identifiant valide - utilisation des fallbacks',
+            );
+          }
           _lastVoiceRefresh = DateTime.now();
-          debugPrint('✅ ${_availableVoices.length} voix chargées depuis Supabase');
+          debugPrint(
+            '✅ ${_availableVoices.length} voix chargées depuis Supabase',
+          );
           return;
         } else {
-          debugPrint('⚠️ Aucune voix trouvée dans available_voices - utilisation des fallbacks');
+          debugPrint(
+            '⚠️ Aucune voix trouvée dans available_voices - utilisation des fallbacks',
+          );
         }
       } catch (dbError) {
         debugPrint('⚠️ Table available_voices non accessible: $dbError');
@@ -142,8 +160,12 @@ class VoiceManagementService {
               ),
             )
             .toList();
-
-        _availableVoices.addAll(frenchVoices);
+        for (final voice in frenchVoices) {
+          if (_availableVoices.any((existing) => existing.id == voice.id)) {
+            continue;
+          }
+          _availableVoices.add(voice);
+        }
       }
     } catch (e) {
       debugPrint('Erreur chargement voix Azure: $e');
@@ -293,8 +315,9 @@ class VoiceManagementService {
         'gender': newVoice.gender,
         'description': newVoice.description,
         'style': newVoice.style,
+        'is_available': newVoice.isAvailable,
         'is_active': true,
-        'created_at': DateTime.now().toIso8601String(),
+        'is_premium': newVoice.isPremium,
       });
 
       _availableVoices.add(newVoice);
