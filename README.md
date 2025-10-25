@@ -125,10 +125,18 @@ HordVoice delivers cutting-edge capabilities through **54 specialized services**
 - **Voice Memory Persistence**: Cross-session conversation context and learning retention
 
 ### 🎪 **Hidden Power Features**
+
 - **Secret Commands System**: Advanced power-user voice commands and shortcuts
-- **Multilingual Service**: Seamless multi-language conversation and content processing  
+- **Multilingual Service**: Seamless multi-language conversation and content processing
 - **Voice Session Management**: Advanced conversation state and context management
 - **Integration Testing Suite**: Comprehensive automated service validation and testing
+
+## Supabase Voice Catalogue Setup
+
+1. Open the Supabase SQL Editor for your production project and run [`database/supabase_migration_voices.sql`](database/supabase_migration_voices.sql) to provision the `available_voices` table, indexes, and RLS policies.
+2. Execute [`database/insert_fallback_data.sql`](database/insert_fallback_data.sql) in the same editor to seed the minimum voice set; you can rerun the script safely, it performs an upsert on the primary key.
+3. Review the execution results. A successful migration should report `CREATE TABLE`, `CREATE INDEX`, `CREATE POLICY`, and `INSERT/UPSERT` statements without errors.
+4. Launch the app and watch the debug console for the `DatabaseInitializationService` health summary (`DB Health`). If the table is missing or empty you will see actionable log messages pointing back to these SQL scripts.
 
 ---
 

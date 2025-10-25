@@ -21,14 +21,24 @@ class VoiceOption {
   });
 
   factory VoiceOption.fromJson(Map<String, dynamic> json) {
+    final idValue = json['id'] ?? json['voice_id'] ?? json['voiceId'];
+    final nameValue = json['name'] ?? json['voice_name'] ?? json['voiceName'];
+    final languageValue =
+        json['language'] ?? json['language_code'] ?? json['locale'];
+    final styleValue = json['style'] ?? json['quality_level'] ?? 'standard';
+    final genderValue = json['gender'] ?? json['voice_gender'] ?? 'unknown';
+    final descriptionValue =
+        json['description'] ?? json['voice_description'] ?? '';
+
     return VoiceOption(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      language: json['language'] as String,
-      style: json['style'] as String,
-      gender: json['gender'] as String,
-      description: json['description'] as String,
-      isAvailable: json['is_available'] as bool? ?? true,
+      id: idValue?.toString() ?? '',
+      name: nameValue?.toString() ?? '',
+      language: languageValue?.toString() ?? '',
+      style: styleValue.toString(),
+      gender: genderValue.toString(),
+      description: descriptionValue.toString(),
+      isAvailable:
+          json['is_available'] as bool? ?? json['is_active'] as bool? ?? true,
       isPremium: json['is_premium'] as bool? ?? false,
     );
   }
@@ -42,7 +52,11 @@ class VoiceOption {
       'gender': gender,
       'description': description,
       'is_available': isAvailable,
+      'is_active': isAvailable,
       'is_premium': isPremium,
+      'voice_id': id,
+      'voice_name': name,
+      'language_code': language,
     };
   }
 
