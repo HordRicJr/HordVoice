@@ -89,7 +89,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     
     // Azure Speech SDK (version compatible avec SDK 36 et Java 17)
     implementation("com.microsoft.cognitiveservices.speech:client-sdk:1.46.0")
